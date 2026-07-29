@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Filaris Texnet</title>
+<meta name="theme-color" content="#0F6CBD" />
+<link rel="icon" type="image/svg+xml" href="icon.svg" />
+<link rel="apple-touch-icon" href="icon.svg" />
+<link rel="manifest" href="manifest.json" />
+<style>
+  body { margin: 0; }
+  * { box-sizing: border-box; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel" data-type="module">
+const { useState, useMemo } = React;
+
+const COLORS = {
+  base: "#F3F3F3", panel: "#FFFFFF", panelAlt: "#F7F7F8",
+  border: "#E1E1E4", ink: "#1B1B1F", inkDim: "#6B6B72",
+  accent: "#0F6CBD", ok: "#0E8A3E", alert: "#C4291C", dye: "#7F5FD1",
+  shadow: "0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04)",
+};
+const fontDisplay = "'Segoe UI Variable','Segoe UI','Inter',sans-serif";
+const fontBody = "'Segoe UI','Inter',sans-serif";
+const fontMono = "'Cascadia Mono','JetBrains Mono',monospace";
+
+const machines = [
+  { id: "RS-01", name: "Raşel 1", order: "SP-1042", lot: "L-2211", target: 800, produced: 612, status: "çalışıyor" },
+  { id: "RS-02", name: "Raşel 2", order: "SP-1039", lot: "L-2208", target: 500, produced: 500, status: "tamamlandı" },
+  { id: "RS-03", name: "Raşel 3", order: "SP-1045", lot: "L-2214", target: 650, produced: 140, status: "çalışıyor" },
+  { id: "RS-04", name: "Raşel 4", order: "—", lot: "—", target: 0, produced: 0, status: "boşta" },
+];
+const dyeVats = [
+  { id: "KZ-1", capacity: 300, lot: "L-2208", recipe: "Ecru V1.2", color: "#E7DFC6", qty: 280, status: "boyanıyor", eta: "2 sa" },
+  { id: "KZ-2", capacity: 300, lot: "L-2201", recipe: "Siyah V2.0", color: "#22242A", qty: 300, status: "fiksaj", eta: "40 dk" },
+  { id: "KZ-3", capacity: 300, lot: "—", recipe: "—", color: null, qty: 0, status: "boşta", eta: "—" },
+];
+const stockLayers = {
+  iplik: [
+    { name: "Polyester İplik (Ham)", lot: "IP-551", qty: 420, unit: "kg", min: 200, unitCost: 2.9, currency: "USD" },
+    { name: "Naylon İplik", lot: "IP-548", qty: 95, unit: "kg", min: 150, unitCost: 3.4, currency: "USD" },
+    { name: "Elastan İplik", lot: "IP-560", qty: 60, unit: "kg", min: 80, unitCost: 5.1, currency: "USD" },
+    { name: "Hazır Ham Kumaş (dışarıdan)", lot: "HK-D12", qty: 180, unit: "m", min: 100, unitCost: 1.8, currency: "USD" },
+  ],
+  hamKumas: [
+    { name: "Ham Dantel 140cm", lot: "L-2211", source: "Raşel 1", qty: 612, unit: "m", reserved: "SP-1042" },
+    { name: "Ham Dantel 90cm", lot: "L-2208", source: "Raşel 2", qty: 500, unit: "m", reserved: "Boyahaneye gönderildi" },
+    { name: "Ham Dantel 120cm", lot: "L-2214", source: "Raşel 3", qty: 140, unit: "m", reserved: "SP-1045" },
+  ],
+  mamul: [
+    { name: "Ecru Dantel 140cm", lot: "M-9901", recipe: "Ecru V1.2", qty: 210, unit: "m", min: 100, reserved: "Nova Tekstil · SP-1042" },
+    { name: "Siyah Dantel 120cm", lot: "M-9887", recipe: "Siyah V2.0", qty: 45, unit: "m", min: 100, reserved: "Aster Giyim · SP-1045" },
+    { name: "Beyaz Dantel 90cm", lot: "M-9860", recipe: "Beyaz Std", qty: 500, unit: "m", min: 150, reserved: "Lima Konfeksiyon · SP-1039" },
+  ],
+};
+const products = [
+  { code: "FLRS-001", name: "Naylon Dantel", quality: "%100 Naylon, 22 gr/m²", color: "#E7DFC6", width: "140cm", price: "38 TL/m" },
+  { code: "FLRS-002", name: "Polyester Dantel Ecru", quality: "%100 Polyester, 26 gr/m²", color: "#D8CFB0", width: "90cm", price: "29 TL/m" },
+  { code: "FLRS-003", name: "Polyester Dantel Siyah", quality: "%95 Polyester %5 Elastan, 30 gr/m²", color: "#2A2C33", width: "120cm", price: "44 TL/m" },
+  { code: "FLRS-004", name: "Viskon Dantel Krem", quality: "%100 Viskon, 24 gr/m²", color: "#EFE6D2", width: "100cm", price: "33 TL/m" },
+  { code: "FLRS-005", name: "Elastan Karışım Dantel", quality: "%88 Poliamid %12 Elastan, 28 gr/m²", color: "#3A4A63", width: "130cm", price: "52 TL/m" },
+];
+const costAnalysis = [
+  { orderId: "SP-1042", product: "Ecru Dantel 140cm", fiberName: "Polyester İplik", fiberKg: 130, fiberUsdKg: 2.9, kur: 34.5, dyeCost: 3200, laborCost: 1800, salesPriceTl: 42, qty: 800 },
+  { orderId: "SP-1039", product: "Beyaz Dantel 90cm", fiberName: "Naylon İplik", fiberKg: 90, fiberUsdKg: 3.4, kur: 34.5, dyeCost: 2100, laborCost: 1200, salesPriceTl: 35, qty: 500 },
+  { orderId: "SP-1045", product: "Siyah Dantel 120cm", fiberName: "Polyester+Elastan Karışım", fiberKg: 95, fiberUsdKg: 3.6, kur: 34.5, dyeCost: 2600, laborCost: 1500, salesPriceTl: 46, qty: 650 },
+  { orderId: "SP-1051", product: "Krem Dantel 100cm", fiberName: "Viskon İplik (planlanan)", fiberKg: 70, fiberUsdKg: 3.1, kur: 34.5, dyeCost: 1900, laborCost: 1100, salesPriceTl: 39, qty: 400 },
+];
+const orders = [
+  { id: "SP-1042", customer: "Nova Tekstil", product: "Ecru Dantel 140cm", qty: 800, produced: 612, stage: "Örme", due: "28 Tem", irsaliye: "—", fatura: "—" },
+  { id: "SP-1039", customer: "Lima Konfeksiyon", product: "Beyaz Dantel 90cm", qty: 500, produced: 500, stage: "Sevke hazır", due: "22 Tem", irsaliye: "IRS-3381", fatura: "Kesilmedi" },
+  { id: "SP-1045", customer: "Aster Giyim", product: "Siyah Dantel 120cm", qty: 650, produced: 140, stage: "Örme", due: "04 Ağu", irsaliye: "—", fatura: "—" },
+  { id: "SP-1051", customer: "Nova Tekstil", product: "Krem Dantel 100cm", qty: 400, produced: 0, stage: "Bekliyor", due: "10 Ağu", irsaliye: "—", fatura: "—" },
+];
+
+function LaceSwatch({ color }) {
+  const dots = [];
+  for (let row = 0; row < 4; row++) {
+    for (let col = 0; col < 5; col++) {
+      const offset = row % 2 === 0 ? 0 : 9;
+      dots.push({ x: 8 + col * 18 + offset, y: 8 + row * 16 });
+    }
+  }
+  return React.createElement("svg", { width: "100%", height: 72, viewBox: "0 0 100 64", preserveAspectRatio: "xMidYMid slice", style: { display: "block", borderRadius: "6px 6px 0 0" } },
+    React.createElement("rect", { width: 100, height: 64, fill: color }),
+    dots.map((d, i) => React.createElement("g", { key: i, opacity: 0.55 },
+      React.createElement("circle", { cx: d.x, cy: d.y, r: 4, fill: "none", stroke: "#FFFFFF", strokeWidth: 0.8 }),
+      React.createElement("circle", { cx: d.x, cy: d.y, r: 1, fill: "#FFFFFF" })
+    ))
+  );
+}
+function LoginScreen({ onLogin }) {
+  const [user, setUser] = useState("");
+  const [pass, setPass] = useState("");
+  const [error, setError] = useState("");
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (user.trim().toLowerCase() === "pilot" && pass === "1234") { setError(""); onLogin(); }
+    else setError("Kullanıcı adı veya şifre hatalı");
+  };
+  return React.createElement("div", { style: { minHeight: "100vh", background: COLORS.base, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: fontBody, padding: 24 } },
+    React.createElement("div", { style: { width: "100%", maxWidth: 340, background: COLORS.panel, border: "1px solid " + COLORS.border, borderRadius: 12, padding: "28px 24px", boxShadow: COLORS.shadow } },
+      React.createElement("div", { style: { display: "flex", justifyContent: "center", marginBottom: 16 } }, React.createElement(LogoMark, { size: 48 })),
+      React.createElement("div", { style: { textAlign: "center", fontFamily: fontDisplay, fontWeight: 700, fontSize: 18, marginBottom: 2 } }, "Filaris ", React.createElement("span", { style: { color: COLORS.accent } }, "Texnet")),
+      React.createElement("div", { style: { textAlign: "center", fontSize: 12, color: COLORS.inkDim, marginBottom: 22 } }, "Pilot Fabrika Girişi"),
+      React.createElement("form", { onSubmit: handleSubmit, style: { display: "flex", flexDirection: "column", gap: 12 } },
+        React.createElement("div", null,
+          React.createElement("label", { style: { fontSize: 12, fontWeight: 600, color: COLORS.inkDim, display: "block", marginBottom: 4 } }, "Kullanıcı adı"),
+          React.createElement("input", { value: user, onChange: (e) => setUser(e.target.value), placeholder: "pilot", style: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 14, fontFamily: fontBody, boxSizing: "border-box", outline: "none" } })
+        ),
+        React.createElement("div", null,
+          React.createElement("label", { style: { fontSize: 12, fontWeight: 600, color: COLORS.inkDim, display: "block", marginBottom: 4 } }, "Şifre"),
+          React.createElement("input", { type: "password", value: pass, onChange: (e) => setPass(e.target.value), placeholder: "••••", style: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 14, fontFamily: fontBody, boxSizing: "border-box", outline: "none" } })
+        ),
+        error && React.createElement("div", { style: { color: COLORS.alert, fontSize: 12, fontWeight: 600 } }, error),
+        React.createElement("button", { type: "submit", style: { marginTop: 6, background: COLORS.accent, color: "#fff", border: "none", borderRadius: 8, padding: "11px 0", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: fontBody } }, "Giriş Yap")
+      ),
+      React.createElement("div", { style: { marginTop: 16, fontSize: 11, color: COLORS.inkDim, textAlign: "center" } }, "Demo giriş: ", React.createElement("b", null, "pilot"), " / ", React.createElement("b", null, "1234"))
+    )
+  );
+}
+function LogoMark({ size }) {
+  return React.createElement("svg", { width: size, height: size, viewBox: "0 0 512 512", style: { borderRadius: 8, flexShrink: 0 } },
+    React.createElement("rect", { width: 512, height: 512, rx: 112, fill: "#0F6CBD" }),
+    React.createElement("circle", { cx: 256, cy: 256, r: 150, fill: "none", stroke: "#FFFFFF", strokeWidth: 26 }),
+    React.createElement("circle", { cx: 256, cy: 256, r: 96, fill: "none", stroke: "#FFFFFF", strokeWidth: 26 }),
+    React.createElement("circle", { cx: 256, cy: 256, r: 42, fill: "#FFFFFF" }),
+    React.createElement("path", { d: "M256 106 A150 150 0 0 1 406 256", fill: "none", stroke: "#8FC1EE", strokeWidth: 26, strokeLinecap: "round" })
+  );
+}
+function NavIcon({ tabKey, active }) {
+  const c = active ? "#0F6CBD" : "#9096A0";
+  const s = { width: 22, height: 22 };
+  if (tabKey === "uretim") return React.createElement("svg", { style: s, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: 1.8 },
+    React.createElement("circle", { cx: 12, cy: 12, r: 8 }), React.createElement("circle", { cx: 12, cy: 12, r: 2.4, fill: c }), React.createElement("path", { d: "M12 4 A8 8 0 0 1 20 12", strokeLinecap: "round" }));
+  if (tabKey === "boyahane") return React.createElement("svg", { style: s, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: 1.8 },
+    React.createElement("path", { d: "M12 3v6l5 8a4 4 0 0 1-3.5 6h-3A4 4 0 0 1 7 17l5-8z", strokeLinecap: "round", strokeLinejoin: "round" }));
+  if (tabKey === "stok") return React.createElement("svg", { style: s, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: 1.8 },
+    React.createElement("path", { d: "M3 8l9-5 9 5-9 5-9-5z", strokeLinejoin: "round" }), React.createElement("path", { d: "M3 8v9l9 5 9-5V8", strokeLinejoin: "round" }), React.createElement("path", { d: "M12 13v9" }));
+  if (tabKey === "urunler") return React.createElement("svg", { style: s, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: 1.8 },
+    React.createElement("rect", { x: 3, y: 3, width: 8, height: 8, rx: 1.5 }), React.createElement("rect", { x: 13, y: 3, width: 8, height: 8, rx: 1.5 }), React.createElement("rect", { x: 3, y: 13, width: 8, height: 8, rx: 1.5 }), React.createElement("rect", { x: 13, y: 13, width: 8, height: 8, rx: 1.5 }));
+  if (tabKey === "maliyet") return React.createElement("svg", { style: s, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: 1.8 },
+    React.createElement("circle", { cx: 12, cy: 12, r: 9 }), React.createElement("path", { d: "M9 15.5c0 1 1 1.5 3 1.5s3-.6 3-1.6c0-1.1-1-1.4-3-1.9s-3-.8-3-1.9c0-1 1-1.6 3-1.6s3 .5 3 1.5", strokeLinecap: "round" }), React.createElement("path", { d: "M12 6v1.5M12 16.5V18", strokeLinecap: "round" }));
+  return React.createElement("svg", { style: s, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: 1.8 },
+    React.createElement("rect", { x: 4, y: 3, width: 16, height: 18, rx: 2 }), React.createElement("path", { d: "M8 8h8M8 12h8M8 16h5", strokeLinecap: "round" }));
+}
+function Spool({ percent, color }) {
+  const r = 26, c = 2 * Math.PI * r, offset = c - (Math.min(percent, 100) / 100) * c;
+  return React.createElement("svg", { width: 60, height: 60, viewBox: "0 0 64 64", style: { transform: "rotate(-90deg)" } },
+    React.createElement("circle", { cx: 32, cy: 32, r, fill: "none", stroke: COLORS.border, strokeWidth: 6 }),
+    React.createElement("circle", { cx: 32, cy: 32, r, fill: "none", stroke: color, strokeWidth: 6, strokeDasharray: c, strokeDashoffset: offset, strokeLinecap: "round", style: { transition: "stroke-dashoffset 0.6s ease" } })
+  );
+}
+function Pill({ label, color }) {
+  return React.createElement("span", { style: { background: color + "1A", color, fontSize: 11, fontWeight: 600, padding: "3px 9px", borderRadius: 6, fontFamily: fontMono, whiteSpace: "nowrap", border: "1px solid " + color + "33" } }, label);
+}
+function Card({ children, accentLeft }) {
+  return React.createElement("div", { style: { background: COLORS.panel, border: "1px solid " + COLORS.border, borderLeft: "3px solid " + (accentLeft || COLORS.border), borderRadius: 8, padding: 14, boxShadow: COLORS.shadow } }, children);
+}
+function SectionLabel({ children, count }) {
+  return React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", margin: "18px 2px 8px" } },
+    React.createElement("span", { style: { fontFamily: fontBody, fontSize: 12, fontWeight: 700, color: COLORS.inkDim, letterSpacing: "0.04em", textTransform: "uppercase" } }, children),
+    count !== undefined && React.createElement("span", { style: { fontFamily: fontMono, fontSize: 11, color: COLORS.inkDim } }, count + " kalem")
+  );
+}
+
+function MainBoard({ onLogout }) {
+  const [tab, setTab] = useState("uretim");
+  const [stockTab, setStockTab] = useState("iplik");
+  const totalToday = useMemo(() => machines.reduce((s, m) => s + m.produced, 0), []);
+  const criticalRaw = stockLayers.iplik.filter(s => s.qty < s.min);
+  const criticalMamul = stockLayers.mamul.filter(s => s.qty < s.min);
+
+  return React.createElement("div", { style: { minHeight: "100vh", background: COLORS.base, color: COLORS.ink, fontFamily: fontBody, paddingBottom: 76 } },
+    React.createElement("div", { style: { background: COLORS.panel, borderBottom: "1px solid " + COLORS.border, padding: "14px 20px", position: "sticky", top: 0, zIndex: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" } },
+      React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } },
+        React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10 } },
+          React.createElement(LogoMark, { size: 36 }),
+          React.createElement("div", null,
+            React.createElement("div", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 16, lineHeight: 1.1 } },
+              "Filaris ", React.createElement("span", { style: { color: COLORS.accent } }, "Texnet")
+            ),
+            React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim } }, "Pilot Fabrika · Vardiya Panosu")
+          )
+        ),
+        React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12 } },
+          React.createElement("div", { style: { textAlign: "right" } },
+            React.createElement("div", { style: { fontFamily: fontMono, fontSize: 22, fontWeight: 700, color: COLORS.accent, lineHeight: 1 } }, totalToday.toLocaleString("tr-TR"), React.createElement("span", { style: { fontSize: 12, color: COLORS.inkDim, marginLeft: 4 } }, "m")),
+            React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginTop: 2 } }, "bugünkü örme çıktısı")
+          ),
+          React.createElement("button", { onClick: onLogout, style: { border: "1px solid " + COLORS.border, background: "transparent", borderRadius: 6, padding: "6px 10px", fontSize: 11, color: COLORS.inkDim, cursor: "pointer", fontFamily: fontBody } }, "Çıkış")
+        )
+      )
+    ),
+    React.createElement("div", { style: { padding: "18px 16px", maxWidth: 720, margin: "0 auto" } },
+      tab === "uretim" && React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
+        machines.map(m => {
+          const pct = m.target ? Math.round((m.produced / m.target) * 100) : 0;
+          const color = m.status === "boşta" ? COLORS.inkDim : m.status === "tamamlandı" ? COLORS.accent : COLORS.ok;
+          return React.createElement(Card, { key: m.id, accentLeft: color },
+            React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 14 } },
+              React.createElement("div", { style: { position: "relative", width: 60, height: 60, flexShrink: 0 } },
+                React.createElement(Spool, { percent: pct, color }),
+                React.createElement("div", { style: { position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: fontMono, fontSize: 12, fontWeight: 700 } }, pct + "%")
+              ),
+              React.createElement("div", { style: { flex: 1, minWidth: 0 } },
+                React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 } },
+                  React.createElement("span", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 15 } }, m.name),
+                  React.createElement(Pill, { label: m.status, color })
+                ),
+                React.createElement("div", { style: { fontSize: 12, color: COLORS.inkDim, marginBottom: 6 } }, m.order !== "—" ? m.order + " · Lot " + m.lot : "İş emri atanmadı"),
+                React.createElement("div", { style: { fontFamily: fontMono, fontSize: 13 } }, m.produced.toLocaleString("tr-TR"), React.createElement("span", { style: { color: COLORS.inkDim } }, " / " + m.target.toLocaleString("tr-TR") + " m"))
+              )
+            )
+          );
+        })
+      ),
+      tab === "boyahane" && React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
+        dyeVats.map(v => {
+          const pct = v.capacity ? Math.round((v.qty / v.capacity) * 100) : 0;
+          const statusColor = v.status === "boşta" ? COLORS.inkDim : v.status === "fiksaj" ? COLORS.accent : COLORS.dye;
+          return React.createElement(Card, { key: v.id, accentLeft: v.status !== "boşta" ? statusColor : COLORS.border },
+            React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start" } },
+              React.createElement("div", { style: { display: "flex", gap: 10, alignItems: "center" } },
+                v.color && React.createElement("div", { style: { width: 26, height: 26, borderRadius: 6, background: v.color, border: "1px solid " + COLORS.border, flexShrink: 0 } }),
+                React.createElement("div", null,
+                  React.createElement("div", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 15 } }, v.id + " · " + v.recipe),
+                  React.createElement("div", { style: { fontSize: 12, color: COLORS.inkDim, marginTop: 2 } }, v.lot !== "—" ? "Ham kumaş lot: " + v.lot : "Kazan boş")
+                )
+              ),
+              React.createElement(Pill, { label: v.status, color: statusColor })
+            ),
+            v.status !== "boşta" && React.createElement(React.Fragment, null,
+              React.createElement("div", { style: { marginTop: 12, height: 6, background: COLORS.panelAlt, borderRadius: 999, overflow: "hidden", border: "1px solid " + COLORS.border } },
+                React.createElement("div", { style: { width: pct + "%", height: "100%", background: statusColor } })
+              ),
+              React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginTop: 6, fontFamily: fontMono, fontSize: 11, color: COLORS.inkDim } },
+                React.createElement("span", null, v.qty + "/" + v.capacity + " kg kazan doluluk"),
+                React.createElement("span", null, "tahmini bitiş: " + v.eta)
+              )
+            )
+          );
+        })
+      ),
+      tab === "stok" && React.createElement("div", null,
+        React.createElement("div", { style: { display: "flex", gap: 6, marginBottom: 4 } },
+          [["iplik","İplik / Elyaf"],["hamKumas","Ham Kumaş"],["mamul","Boyalı / Mamul"]].map(([key,label]) =>
+            React.createElement("button", { key, onClick: () => setStockTab(key), style: { flex: 1, padding: "8px 4px", borderRadius: 6, border: "1px solid " + (stockTab === key ? COLORS.accent : COLORS.border), background: stockTab === key ? COLORS.accent + "0D" : COLORS.panel, color: stockTab === key ? COLORS.accent : COLORS.inkDim, fontFamily: fontBody, fontWeight: 600, fontSize: 11.5, cursor: "pointer" } }, label)
+          )
+        ),
+        stockTab === "iplik" && React.createElement(React.Fragment, null,
+          criticalRaw.length > 0 && React.createElement("div", { style: { background: "#FDECEA", border: "1px solid " + COLORS.alert + "44", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: COLORS.alert, fontWeight: 600, marginTop: 12 } }, criticalRaw.length + " hammadde kritik seviyenin altında"),
+          React.createElement(SectionLabel, { count: stockLayers.iplik.length }, "Hammadde Stoku"),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
+            stockLayers.iplik.map(s => {
+              const low = s.qty < s.min, pct = Math.min(100, Math.round((s.qty / (s.min * 2)) * 100));
+              return React.createElement(Card, { key: s.lot, accentLeft: low ? COLORS.alert : COLORS.border },
+                React.createElement("div", { style: { display: "flex", justifyContent: "space-between" } },
+                  React.createElement("div", null,
+                    React.createElement("div", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 14 } }, s.name),
+                    React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, fontFamily: fontMono, marginTop: 2 } }, "Lot " + s.lot)
+                  ),
+                  React.createElement("div", { style: { textAlign: "right" } },
+                    React.createElement("div", { style: { fontFamily: fontMono, fontWeight: 700, fontSize: 14, color: low ? COLORS.alert : COLORS.ink } }, s.qty + " " + s.unit),
+                    React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, fontFamily: fontMono } }, s.unitCost + " " + s.currency + "/" + s.unit)
+                  )
+                ),
+                React.createElement("div", { style: { height: 5, background: COLORS.panelAlt, borderRadius: 999, overflow: "hidden", marginTop: 10, border: "1px solid " + COLORS.border } },
+                  React.createElement("div", { style: { width: pct + "%", height: "100%", background: low ? COLORS.alert : COLORS.ok } })
+                )
+              );
+            })
+          )
+        ),
+        stockTab === "hamKumas" && React.createElement(React.Fragment, null,
+          React.createElement(SectionLabel, { count: stockLayers.hamKumas.length }, "Örmeden Çıkan Ham Kumaş"),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
+            stockLayers.hamKumas.map(s => React.createElement(Card, { key: s.lot },
+              React.createElement("div", { style: { display: "flex", justifyContent: "space-between" } },
+                React.createElement("div", null,
+                  React.createElement("div", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 14 } }, s.name),
+                  React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginTop: 2 } }, s.source + " · Lot " + s.lot)
+                ),
+                React.createElement("div", { style: { fontFamily: fontMono, fontWeight: 700, fontSize: 14 } }, s.qty + " " + s.unit)
+              ),
+              React.createElement("div", { style: { marginTop: 8 } }, React.createElement(Pill, { label: s.reserved, color: COLORS.dye }))
+            ))
+          )
+        ),
+        stockTab === "mamul" && React.createElement(React.Fragment, null,
+          criticalMamul.length > 0 && React.createElement("div", { style: { background: "#FDECEA", border: "1px solid " + COLORS.alert + "44", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: COLORS.alert, fontWeight: 600, marginTop: 12 } }, criticalMamul.length + " mamul ürün kritik seviyenin altında"),
+          React.createElement(SectionLabel, { count: stockLayers.mamul.length }, "Boyanmış / Sevke Hazır Stok"),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
+            stockLayers.mamul.map(s => {
+              const low = s.qty < s.min;
+              return React.createElement(Card, { key: s.lot, accentLeft: low ? COLORS.alert : COLORS.border },
+                React.createElement("div", { style: { display: "flex", justifyContent: "space-between" } },
+                  React.createElement("div", null,
+                    React.createElement("div", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 14 } }, s.name),
+                    React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, fontFamily: fontMono, marginTop: 2 } }, "Lot " + s.lot + " · " + s.recipe)
+                  ),
+                  React.createElement("div", { style: { fontFamily: fontMono, fontWeight: 700, fontSize: 14, color: low ? COLORS.alert : COLORS.ink } }, s.qty + " " + s.unit)
+                ),
+                React.createElement("div", { style: { marginTop: 8 } }, React.createElement(Pill, { label: s.reserved, color: COLORS.accent }))
+              );
+            })
+          )
+        )
+      ),
+      tab === "urunler" && React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 } },
+        products.map(p => React.createElement("div", { key: p.code, style: { background: COLORS.panel, border: "1px solid " + COLORS.border, borderRadius: 8, overflow: "hidden", boxShadow: COLORS.shadow } },
+          React.createElement(LaceSwatch, { color: p.color }),
+          React.createElement("div", { style: { padding: 10 } },
+            React.createElement("div", { style: { fontFamily: fontMono, fontSize: 11, color: COLORS.accent, fontWeight: 700 } }, p.code),
+            React.createElement("div", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 13, marginTop: 2 } }, p.name),
+            React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginTop: 4, lineHeight: 1.4 } }, p.quality),
+            React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginTop: 8, fontFamily: fontMono, fontSize: 11 } },
+              React.createElement("span", { style: { color: COLORS.inkDim } }, p.width),
+              React.createElement("span", { style: { fontWeight: 700 } }, p.price)
+            )
+          )
+        ))
+      ),
+      tab === "siparis" && React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
+        orders.map(o => {
+          const pct = Math.round((o.produced / o.qty) * 100);
+          const stageColor = o.stage === "Sevke hazır" ? COLORS.accent : o.stage === "Bekliyor" ? COLORS.inkDim : COLORS.ok;
+          return React.createElement(Card, { key: o.id, accentLeft: stageColor },
+            React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start" } },
+              React.createElement("div", null,
+                React.createElement("div", { style: { fontFamily: fontMono, fontSize: 11, color: COLORS.accent } }, o.id),
+                React.createElement("div", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 14, marginTop: 2 } }, o.product),
+                React.createElement("div", { style: { fontSize: 12, color: COLORS.inkDim, marginTop: 2 } }, o.customer)
+              ),
+              React.createElement("div", { style: { textAlign: "right" } },
+                React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim } }, "teslim"),
+                React.createElement("div", { style: { fontFamily: fontMono, fontSize: 13, fontWeight: 700 } }, o.due)
+              )
+            ),
+            React.createElement("div", { style: { marginTop: 10, display: "flex", alignItems: "center", gap: 10 } },
+              React.createElement("div", { style: { flex: 1, height: 6, background: COLORS.panelAlt, borderRadius: 999, overflow: "hidden", border: "1px solid " + COLORS.border } },
+                React.createElement("div", { style: { width: Math.min(pct, 100) + "%", height: "100%", background: stageColor } })
+              ),
+              React.createElement("span", { style: { fontFamily: fontMono, fontSize: 12, color: COLORS.inkDim, whiteSpace: "nowrap" } }, o.produced + "/" + o.qty + " m")
+            ),
+            React.createElement("div", { style: { marginTop: 8 } }, React.createElement(Pill, { label: o.stage, color: stageColor })),
+            React.createElement("div", { style: { marginTop: 10, paddingTop: 10, borderTop: "1px solid " + COLORS.border, display: "flex", justifyContent: "space-between", fontSize: 11, fontFamily: fontMono, color: COLORS.inkDim } },
+              React.createElement("span", null, "İrsaliye: " + o.irsaliye),
+              React.createElement("span", null, "Fatura: " + o.fatura)
+            )
+          );
+        })
+      ),
+      tab === "maliyet" && React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
+        React.createElement("div", { style: { background: COLORS.accent + "0D", border: "1px solid " + COLORS.accent + "33", borderRadius: 8, padding: "10px 14px", fontSize: 11.5, color: COLORS.accent, fontWeight: 600 } },
+          "Kur: 1 USD ≈ 34,50 TL (örnek/manuel değer — canlı kur bağlantısı sonraki aşamada eklenecek)"
+        ),
+        costAnalysis.map(c => {
+          const fiberCostTl = c.fiberKg * c.fiberUsdKg * c.kur;
+          const totalCost = fiberCostTl + c.dyeCost + c.laborCost;
+          const revenue = c.salesPriceTl * c.qty;
+          const profit = revenue - totalCost;
+          const marginPct = revenue ? Math.round((profit / revenue) * 100) : 0;
+          const positive = profit >= 0;
+          return React.createElement(Card, { key: c.orderId, accentLeft: positive ? COLORS.ok : COLORS.alert },
+            React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start" } },
+              React.createElement("div", null,
+                React.createElement("div", { style: { fontFamily: fontMono, fontSize: 11, color: COLORS.accent } }, c.orderId),
+                React.createElement("div", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 14, marginTop: 2 } }, c.product),
+                React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginTop: 2 } }, c.fiberName + " · " + c.fiberKg + " kg")
+              ),
+              React.createElement(Pill, { label: marginPct + "% marj", color: positive ? COLORS.ok : COLORS.alert })
+            ),
+            React.createElement("div", { style: { marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 12px", fontFamily: fontMono, fontSize: 11.5 } },
+              React.createElement("span", { style: { color: COLORS.inkDim } }, "Elyaf maliyeti"),
+              React.createElement("span", { style: { textAlign: "right" } }, fiberCostTl.toLocaleString("tr-TR", { maximumFractionDigits: 0 }) + " TL"),
+              React.createElement("span", { style: { color: COLORS.inkDim } }, "Boya maliyeti"),
+              React.createElement("span", { style: { textAlign: "right" } }, c.dyeCost.toLocaleString("tr-TR") + " TL"),
+              React.createElement("span", { style: { color: COLORS.inkDim } }, "İşçilik"),
+              React.createElement("span", { style: { textAlign: "right" } }, c.laborCost.toLocaleString("tr-TR") + " TL"),
+              React.createElement("span", { style: { color: COLORS.ink, fontWeight: 700 } }, "Toplam maliyet"),
+              React.createElement("span", { style: { textAlign: "right", fontWeight: 700 } }, totalCost.toLocaleString("tr-TR", { maximumFractionDigits: 0 }) + " TL")
+            ),
+            React.createElement("div", { style: { marginTop: 10, paddingTop: 10, borderTop: "1px solid " + COLORS.border, display: "flex", justifyContent: "space-between", alignItems: "center" } },
+              React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim } }, "Satış: " + c.salesPriceTl + " TL/m × " + c.qty + " m = " + revenue.toLocaleString("tr-TR") + " TL"),
+              React.createElement("div", { style: { fontFamily: fontMono, fontWeight: 700, fontSize: 14, color: positive ? COLORS.ok : COLORS.alert } }, (positive ? "+" : "") + profit.toLocaleString("tr-TR", { maximumFractionDigits: 0 }) + " TL")
+            )
+          );
+        })
+      )
+    ),
+    React.createElement("div", { style: { position: "fixed", bottom: 0, left: 0, right: 0, background: COLORS.panel, borderTop: "1px solid " + COLORS.border, display: "flex", padding: "6px 4px calc(6px + env(safe-area-inset-bottom))", boxShadow: "0 -2px 10px rgba(0,0,0,0.05)", zIndex: 20 } },
+      [["uretim","Örme"],["boyahane","Boyahane"],["stok","Stok"],["urunler","Ürünler"],["siparis","Sipariş"],["maliyet","Maliyet"]].map(([key,label]) => {
+        const active = tab === key;
+        return React.createElement("button", { key, onClick: () => setTab(key), style: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: "6px 2px", border: "none", background: "transparent", cursor: "pointer" } },
+          React.createElement(NavIcon, { tabKey: key, active }),
+          React.createElement("span", { style: { fontSize: 10, fontWeight: active ? 700 : 500, color: active ? COLORS.accent : COLORS.inkDim, fontFamily: fontBody } }, label)
+        );
+      })
+    )
+  );
+}
+
+function App() {
+  const [loggedIn, setLoggedIn] = useState(false);
+  if (!loggedIn) return React.createElement(LoginScreen, { onLogin: () => setLoggedIn(true) });
+  return React.createElement(MainBoard, { onLogout: () => setLoggedIn(false) });
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+</script>
+</body>
+</html>
