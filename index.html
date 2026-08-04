@@ -21,6 +21,7 @@
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <script type="text/babel" data-type="module">
 const { useState, useMemo, useRef, useEffect } = React;
@@ -109,6 +110,19 @@ const costAnalysis = [
   { orderId: "SP-1039", product: "Beyaz Dantel 90cm", fiberName: "Naylon İplik", fiberKg: 90, fiberUsdKg: 3.4, kur: 34.5, dyeCost: 2100, laborCost: 1200, salesPriceTl: 35, qty: 500, gsm: 24, widthM: 0.90 },
   { orderId: "SP-1045", product: "Siyah Dantel 120cm", fiberName: "Polyester+Elastan Karışım", fiberKg: 95, fiberUsdKg: 3.6, kur: 34.5, dyeCost: 2600, laborCost: 1500, salesPriceTl: 46, qty: 650, gsm: 26, widthM: 1.20 },
   { orderId: "SP-1051", product: "Krem Dantel 100cm", fiberName: "Viskon İplik (planlanan)", fiberKg: 70, fiberUsdKg: 3.1, kur: 34.5, dyeCost: 1900, laborCost: 1100, salesPriceTl: 39, qty: 400, gsm: 20, widthM: 1.00 },
+];
+const productionTrend = [
+  { label: "24 Tem", value: 1120 }, { label: "25 Tem", value: 1340 }, { label: "26 Tem", value: 980 },
+  { label: "27 Tem", value: 1510 }, { label: "28 Tem", value: 1290 }, { label: "29 Tem", value: 1670 },
+  { label: "30 Tem", value: 1780 },
+];
+const fiberConsumptionHistory = [
+  { label: "Mar", value: 1850 }, { label: "Nis", value: 2010 }, { label: "May", value: 1940 },
+  { label: "Haz", value: 2280 }, { label: "Tem", value: 2460 },
+];
+const initialShiftNotes = [
+  { id: 1, person: "Ahmet (Gündüz Vardiyası)", time: "29 Tem, 16:00", text: "Raşel 3'te iplik kopması oldu, 20 dk duraksama yaşandı, telafi edildi. Elyaf stoku (Elastan) azalıyor, ikmal gerekebilir." },
+  { id: 2, person: "Mehmet (Gece Vardiyası)", time: "28 Tem, 23:30", text: "KZ-2 kazanı planlı bakımdan çıktı, sorunsuz çalışıyor. SP-1039 sevkiyata hazır, irsaliye bekliyor." },
 ];
 const initialOrders = [
   { id: "SP-1042", customer: "Nova Tekstil", product: "Ecru Dantel 140cm", qty: 800, produced: 612, stage: "Örme", due: "28 Tem", irsaliye: "—", fatura: "—" },
@@ -295,6 +309,10 @@ function NavIcon({ tabKey, active }) {
   if (tabKey === "barkod") return React.createElement("svg", { style: s, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: 1.8 },
     React.createElement("rect", { x: 3, y: 3, width: 6, height: 6, rx: 1 }), React.createElement("rect", { x: 15, y: 3, width: 6, height: 6, rx: 1 }), React.createElement("rect", { x: 3, y: 15, width: 6, height: 6, rx: 1 }),
     React.createElement("path", { d: "M15 15h3v3M20 15v3M15 20h2M19 20h2", strokeLinecap: "round", strokeLinejoin: "round" }));
+  if (tabKey === "tahmin") return React.createElement("svg", { style: s, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: 1.8 },
+    React.createElement("path", { d: "M3 17l6-6 4 4 8-8", strokeLinecap: "round", strokeLinejoin: "round" }), React.createElement("path", { d: "M15 7h6v6", strokeLinecap: "round", strokeLinejoin: "round" }));
+  if (tabKey === "vardiya") return React.createElement("svg", { style: s, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: 1.8 },
+    React.createElement("circle", { cx: 12, cy: 8, r: 3.5 }), React.createElement("path", { d: "M5 20c0-3.5 3-6 7-6s7 2.5 7 6", strokeLinecap: "round" }));
   return React.createElement("svg", { style: s, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: 1.8 },
     React.createElement("rect", { x: 4, y: 3, width: 16, height: 18, rx: 2 }), React.createElement("path", { d: "M8 8h8M8 12h8M8 16h5", strokeLinecap: "round" }));
 }
@@ -328,6 +346,27 @@ function FormField({ label, ...props }) {
     React.createElement("input", { ...props, style: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13.5, boxSizing: "border-box", outline: "none", fontFamily: "'Inter',sans-serif" } })
   );
 }
+function TrendChart({ data, color, height }) {
+  height = height || 120;
+  const w = 300;
+  const max = Math.max(...data.map(d => d.value), 1);
+  const min = Math.min(...data.map(d => d.value), 0);
+  const range = max - min || 1;
+  const stepX = w / (data.length - 1 || 1);
+  const points = data.map((d, i) => ({ x: i * stepX, y: height - ((d.value - min) / range) * (height - 24) - 12 }));
+  const path = points.map((p, i) => (i === 0 ? "M" : "L") + p.x + "," + p.y).join(" ");
+  const areaPath = path + " L" + points[points.length - 1].x + "," + height + " L0," + height + " Z";
+  return React.createElement("div", null,
+    React.createElement("svg", { width: "100%", height, viewBox: "0 0 " + w + " " + height, preserveAspectRatio: "none", style: { overflow: "visible" } },
+      React.createElement("path", { d: areaPath, fill: color, opacity: 0.08 }),
+      React.createElement("path", { d: path, fill: "none", stroke: color, strokeWidth: 2.5, strokeLinejoin: "round", strokeLinecap: "round" }),
+      points.map((p, i) => React.createElement("circle", { key: i, cx: p.x, cy: p.y, r: i === points.length - 1 ? 4 : 2.5, fill: color }))
+    ),
+    React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginTop: 4 } },
+      data.map((d, i) => React.createElement("span", { key: i, style: { fontSize: 9.5, color: "#9096A0", fontFamily: "'JetBrains Mono',monospace" } }, d.label))
+    )
+  );
+}
 function StatCard({ label, value, sub, color, onClick }) {
   return React.createElement("button", { onClick, style: { textAlign: "left", background: COLORS.panel, border: "1px solid " + COLORS.border, borderLeft: "3px solid " + (color || COLORS.border), borderRadius: 10, padding: 14, cursor: "pointer", boxShadow: COLORS.shadow, width: "100%" } },
     React.createElement("div", { style: { fontSize: 10.5, color: COLORS.inkDim, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.03em" } }, label),
@@ -359,6 +398,15 @@ function MainBoard({ onLogout }) {
   const [newStockOpen, setNewStockOpen] = useState(false);
   const [importPreview, setImportPreview] = useState(null);
   const [importError, setImportError] = useState("");
+  const stockFileInputRef = useRef(null);
+  const [stockImportPreview, setStockImportPreview] = useState(null);
+  const [stockImportError, setStockImportError] = useState("");
+  const [shiftNotes, setShiftNotes] = useState(initialShiftNotes);
+  const [ocrBusy, setOcrBusy] = useState(false);
+  const [ocrRawText, setOcrRawText] = useState("");
+  const [ocrResult, setOcrResult] = useState(null);
+  const [ocrError, setOcrError] = useState("");
+  const [ocrAttachOrder, setOcrAttachOrder] = useState("");
   const fileInputRef = useRef(null);
   const [barkodResult, setBarkodResult] = useState(null);
   const [barkodManual, setBarkodManual] = useState("");
@@ -472,6 +520,83 @@ function MainBoard({ onLogout }) {
     setImportPreview(null);
   };
 
+  const STOCK_TEMPLATE_COLUMNS = ["Tür", "Kalem Adı", "Lot No", "Miktar", "Birim", "Min Stok", "Birim Fiyat (USD)", "Kaynak/Reçete"];
+
+  const downloadStockExcelTemplate = () => {
+    const sample = [
+      { "Tür": "iplik", "Kalem Adı": "Polyester İplik (Ecru)", "Lot No": "IP-580", "Miktar": 200, "Birim": "kg", "Min Stok": 100, "Birim Fiyat (USD)": 3.0, "Kaynak/Reçete": "" },
+      { "Tür": "hamKumas", "Kalem Adı": "Ham Dantel 130cm", "Lot No": "L-2220", "Miktar": 300, "Birim": "m", "Min Stok": "", "Birim Fiyat (USD)": "", "Kaynak/Reçete": "Raşel 1" },
+      { "Tür": "mamul", "Kalem Adı": "Lacivert Dantel 130cm", "Lot No": "M-9920", "Miktar": 150, "Birim": "m", "Min Stok": 80, "Birim Fiyat (USD)": "", "Kaynak/Reçete": "Lacivert V1" },
+    ];
+    const ws = XLSX.utils.json_to_sheet(sample, { header: STOCK_TEMPLATE_COLUMNS });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Stok Şablonu");
+    XLSX.writeFile(wb, "filaris-stok-sablonu.xlsx");
+  };
+
+  const handleStockFileSelected = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setStockImportError("");
+    parseExcelFile(file, (rows) => {
+      if (!rows.length) { setStockImportError("Dosyada okunabilir satır bulunamadı."); return; }
+      setStockImportPreview(rows);
+    }, (msg) => setStockImportError(msg));
+    e.target.value = "";
+  };
+
+  const confirmStockImport = () => {
+    setStockLayers(prev => {
+      const next = { iplik: [...prev.iplik], hamKumas: [...prev.hamKumas], mamul: [...prev.mamul] };
+      stockImportPreview.forEach(row => {
+        const tur = String(row["Tür"] || "").trim();
+        if (!["iplik", "hamKumas", "mamul"].includes(tur)) return;
+        const lot = row["Lot No"] || ("YENİ-" + Math.floor(Math.random() * 9000 + 1000));
+        if (tur === "iplik") next.iplik.push({ name: row["Kalem Adı"] || "İsimsiz", lot, qty: Number(row["Miktar"]) || 0, unit: row["Birim"] || "kg", min: Number(row["Min Stok"]) || 0, unitCost: Number(row["Birim Fiyat (USD)"]) || 0, currency: "USD" });
+        else if (tur === "hamKumas") next.hamKumas.push({ name: row["Kalem Adı"] || "İsimsiz", lot, source: row["Kaynak/Reçete"] || "—", qty: Number(row["Miktar"]) || 0, unit: "m", reserved: "—" });
+        else next.mamul.push({ name: row["Kalem Adı"] || "İsimsiz", lot, recipe: row["Kaynak/Reçete"] || "—", qty: Number(row["Miktar"]) || 0, unit: "m", min: Number(row["Min Stok"]) || 0, reserved: "—" });
+      });
+      return next;
+    });
+    setStockImportPreview(null);
+  };
+
+  const parseDocumentText = (text) => {
+    const irsMatch = text.match(/irsaliye\s*no[:\s]*([A-Z0-9\-\/]+)/i);
+    const faturaMatch = text.match(/fatura\s*no[:\s]*([A-Z0-9\-\/]+)/i);
+    const dateMatch = text.match(/(\d{1,2}[\.\/]\d{1,2}[\.\/]\d{2,4})/);
+    const amountMatch = text.match(/toplam[:\s]*([\d.,]+)/i);
+    return {
+      irsaliyeNo: irsMatch ? irsMatch[1] : "",
+      faturaNo: faturaMatch ? faturaMatch[1] : "",
+      tarih: dateMatch ? dateMatch[1] : "",
+      tutar: amountMatch ? amountMatch[1] : "",
+    };
+  };
+
+  const handleDocumentPhoto = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setOcrError(""); setOcrResult(null); setOcrRawText("");
+    if (!window.Tesseract) { setOcrError("OCR motoru henüz yüklenmedi, birkaç saniye bekleyip tekrar dene."); return; }
+    setOcrBusy(true);
+    try {
+      const { data } = await window.Tesseract.recognize(file, "tur+eng");
+      setOcrRawText(data.text);
+      setOcrResult(parseDocumentText(data.text));
+    } catch (err) {
+      setOcrError("Görüntü okunamadı. Daha net, düz açıdan bir fotoğrafla tekrar dener misin?");
+    } finally {
+      setOcrBusy(false);
+    }
+  };
+
+  const saveOcrResult = () => {
+    if (!ocrAttachOrder || !ocrResult) return;
+    setOrders(prev => prev.map(o => o.id === ocrAttachOrder ? { ...o, irsaliye: ocrResult.irsaliyeNo || o.irsaliye, fatura: ocrResult.faturaNo || o.fatura } : o));
+    setOcrResult(null); setOcrRawText(""); setOcrAttachOrder("");
+  };
+
   return React.createElement("div", { style: { minHeight: "100vh", background: COLORS.base, color: COLORS.ink, fontFamily: fontBody, paddingBottom: 76 } },
     React.createElement("div", { style: { background: COLORS.panel, borderBottom: "1px solid " + COLORS.border, padding: "14px 20px", position: "sticky", top: 0, zIndex: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" } },
       React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } },
@@ -529,6 +654,8 @@ function MainBoard({ onLogout }) {
             React.createElement(StatCard, { label: "Bekleyen Sipariş", value: pendingOrders.length, sub: "sevke hazır değil", color: COLORS.thread, onClick: () => setTab("siparis") }),
             React.createElement(StatCard, { label: "Sertifika", value: certOkGlobal ? "✓ Tamam" : "✕ Eksik", sub: "SP-1042 · RCS/GRS", color: certOkGlobal ? COLORS.ok : COLORS.alert, onClick: () => setTab("kalite") })
           ),
+          React.createElement(SectionLabel, null, "Son 7 Gün Üretim Trendi"),
+          React.createElement(Card, null, React.createElement(TrendChart, { data: productionTrend, color: COLORS.accent })),
           React.createElement(SectionLabel, { count: pendingOrders.length }, "Yaklaşan Teslimatlar"),
           React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
             pendingOrders.map(o => {
@@ -618,7 +745,13 @@ function MainBoard({ onLogout }) {
             React.createElement("button", { key, onClick: () => setStockTab(key), style: { flex: 1, padding: "8px 4px", borderRadius: 6, border: "1px solid " + (stockTab === key ? COLORS.accent : COLORS.border), background: stockTab === key ? COLORS.accent + "0D" : COLORS.panel, color: stockTab === key ? COLORS.accent : COLORS.inkDim, fontFamily: fontBody, fontWeight: 600, fontSize: 11.5, cursor: "pointer" } }, label)
           )
         ),
-        React.createElement("button", { onClick: () => setNewStockOpen(true), style: { display: "flex", alignItems: "center", gap: 6, background: COLORS.accent, border: "none", borderRadius: 6, padding: "8px 12px", fontSize: 11.5, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: fontBody, marginTop: 10 } }, "+ Stok Girişi Yap"),
+        React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10 } },
+          React.createElement("button", { onClick: () => setNewStockOpen(true), style: { display: "flex", alignItems: "center", gap: 6, background: COLORS.accent, border: "none", borderRadius: 6, padding: "8px 12px", fontSize: 11.5, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: fontBody } }, "+ Stok Girişi Yap"),
+          React.createElement("button", { onClick: downloadStockExcelTemplate, style: { display: "flex", alignItems: "center", gap: 6, background: "transparent", border: "1px solid " + COLORS.border, borderRadius: 6, padding: "8px 12px", fontSize: 11.5, fontWeight: 600, color: COLORS.inkDim, cursor: "pointer", fontFamily: fontBody } }, "📥 Stok Şablonu İndir"),
+          React.createElement("button", { onClick: () => stockFileInputRef.current && stockFileInputRef.current.click(), style: { display: "flex", alignItems: "center", gap: 6, background: "transparent", border: "1px solid " + COLORS.accent, borderRadius: 6, padding: "8px 12px", fontSize: 11.5, fontWeight: 600, color: COLORS.accent, cursor: "pointer", fontFamily: fontBody } }, "📤 Excel'den İçe Aktar"),
+          React.createElement("input", { ref: stockFileInputRef, type: "file", accept: ".xlsx,.xls", onChange: handleStockFileSelected, style: { display: "none" } })
+        ),
+        stockImportError && React.createElement("div", { style: { background: "#FDECEA", border: "1px solid " + COLORS.alert + "44", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: COLORS.alert, marginTop: 8 } }, stockImportError),
         stockTab === "iplik" && React.createElement(React.Fragment, null,
           criticalRaw.length > 0 && React.createElement("div", { style: { background: "#FDECEA", border: "1px solid " + COLORS.alert + "44", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: COLORS.alert, fontWeight: 600, marginTop: 12 } }, criticalRaw.length + " hammadde kritik seviyenin altında"),
           React.createElement(SectionLabel, { count: stockLayers.iplik.length }, "Hammadde Stoku"),
@@ -712,6 +845,23 @@ function MainBoard({ onLogout }) {
           React.createElement(FormField, { name: "min", label: "Minimum Stok Seviyesi", type: "number", placeholder: "örn. 100" })
         ),
         React.createElement("div", { style: { fontSize: 10.5, color: COLORS.inkDim, lineHeight: 1.4 } }, "Not: Bu demo aşamasında eklenen stok yalnızca bu oturumda görünür.")
+      ),
+      stockImportPreview && React.createElement("div", { onClick: () => setStockImportPreview(null), style: { position: "fixed", inset: 0, background: "rgba(15,20,25,0.6)", zIndex: 70, display: "flex", alignItems: "flex-end", justifyContent: "center" } },
+        React.createElement("div", { onClick: (e) => e.stopPropagation(), style: { background: COLORS.panel, borderRadius: "16px 16px 0 0", width: "100%", maxWidth: 480, maxHeight: "85vh", overflowY: "auto", padding: 20 } },
+          React.createElement("div", { style: { fontFamily: "'Space Grotesk','Inter',sans-serif", fontWeight: 700, fontSize: 16, marginBottom: 4 } }, "Stok Excel Önizleme"),
+          React.createElement("div", { style: { fontSize: 12, color: COLORS.inkDim, marginBottom: 14 } }, stockImportPreview.length + " satır okundu."),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8, maxHeight: "40vh", overflowY: "auto" } },
+            stockImportPreview.map((row, i) => React.createElement("div", { key: i, style: { border: "1px solid " + COLORS.border, borderRadius: 8, padding: "10px 12px" } },
+              React.createElement(Pill, { label: row["Tür"] || "?", color: COLORS.dye }),
+              React.createElement("div", { style: { fontSize: 12.5, fontWeight: 600, marginTop: 6 } }, row["Kalem Adı"] + " · " + row["Lot No"]),
+              React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginTop: 2 } }, row["Miktar"] + " " + row["Birim"])
+            ))
+          ),
+          React.createElement("div", { style: { display: "flex", gap: 8, marginTop: 16 } },
+            React.createElement("button", { onClick: () => setStockImportPreview(null), style: { flex: 1, background: "transparent", border: "1px solid " + COLORS.border, borderRadius: 8, padding: "12px 0", fontWeight: 600, fontSize: 13, cursor: "pointer", color: COLORS.inkDim } }, "İptal"),
+            React.createElement("button", { onClick: confirmStockImport, style: { flex: 2, background: COLORS.accent, color: "#fff", border: "none", borderRadius: 8, padding: "12px 0", fontWeight: 700, fontSize: 14, cursor: "pointer" } }, "✓ Onayla ve İçe Aktar")
+          )
+        )
       ),
       tab === "urunler" && React.createElement(React.Fragment, null,
         React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 } },
@@ -1076,11 +1226,103 @@ function MainBoard({ onLogout }) {
               )
             )
           )
+        ),
+        React.createElement(SectionLabel, null, "İrsaliye / Fatura Tara (OCR)"),
+        React.createElement("div", { style: { fontSize: 10.5, color: COLORS.inkDim, marginBottom: 10, lineHeight: 1.4 } }, "Kağıt belgenin fotoğrafını çek, sistem yazıyı otomatik okumaya çalışsın. OCR hiçbir zaman %100 doğru olmaz — kaydetmeden önce alanları mutlaka kontrol et."),
+        React.createElement("label", { style: { display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", background: ocrBusy ? COLORS.panelAlt : COLORS.dye, color: "#fff", border: "none", borderRadius: 10, padding: "14px 0", fontWeight: 700, fontSize: 13.5, cursor: ocrBusy ? "default" : "pointer" } },
+          ocrBusy ? "🔎 Okunuyor, lütfen bekle..." : "📄 Belge Fotoğrafı Çek / Yükle",
+          React.createElement("input", { type: "file", accept: "image/*", capture: "environment", onChange: handleDocumentPhoto, disabled: ocrBusy, style: { display: "none" } })
+        ),
+        ocrError && React.createElement("div", { style: { marginTop: 10, fontSize: 11.5, color: COLORS.alert, background: "#FDECEA", padding: "10px 12px", borderRadius: 8, lineHeight: 1.4 } }, ocrError),
+        ocrResult && React.createElement(Card, { accentLeft: COLORS.dye },
+          React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginBottom: 10 } }, "Okunan bilgiler — göndermeden önce kontrol et:"),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            React.createElement("div", null,
+              React.createElement("label", { style: { fontSize: 11, color: COLORS.inkDim, fontWeight: 600 } }, "İrsaliye No"),
+              React.createElement("input", { value: ocrResult.irsaliyeNo, onChange: e => setOcrResult({ ...ocrResult, irsaliyeNo: e.target.value }), style: { width: "100%", marginTop: 3, padding: "8px 10px", borderRadius: 6, border: "1px solid " + COLORS.border, fontSize: 12.5, boxSizing: "border-box" } })
+            ),
+            React.createElement("div", null,
+              React.createElement("label", { style: { fontSize: 11, color: COLORS.inkDim, fontWeight: 600 } }, "Fatura No"),
+              React.createElement("input", { value: ocrResult.faturaNo, onChange: e => setOcrResult({ ...ocrResult, faturaNo: e.target.value }), style: { width: "100%", marginTop: 3, padding: "8px 10px", borderRadius: 6, border: "1px solid " + COLORS.border, fontSize: 12.5, boxSizing: "border-box" } })
+            ),
+            React.createElement("div", { style: { display: "flex", gap: 8 } },
+              React.createElement("div", { style: { flex: 1 } },
+                React.createElement("label", { style: { fontSize: 11, color: COLORS.inkDim, fontWeight: 600 } }, "Tarih"),
+                React.createElement("input", { value: ocrResult.tarih, onChange: e => setOcrResult({ ...ocrResult, tarih: e.target.value }), style: { width: "100%", marginTop: 3, padding: "8px 10px", borderRadius: 6, border: "1px solid " + COLORS.border, fontSize: 12.5, boxSizing: "border-box" } })
+              ),
+              React.createElement("div", { style: { flex: 1 } },
+                React.createElement("label", { style: { fontSize: 11, color: COLORS.inkDim, fontWeight: 600 } }, "Tutar"),
+                React.createElement("input", { value: ocrResult.tutar, onChange: e => setOcrResult({ ...ocrResult, tutar: e.target.value }), style: { width: "100%", marginTop: 3, padding: "8px 10px", borderRadius: 6, border: "1px solid " + COLORS.border, fontSize: 12.5, boxSizing: "border-box" } })
+              )
+            ),
+            React.createElement("div", null,
+              React.createElement("label", { style: { fontSize: 11, color: COLORS.inkDim, fontWeight: 600 } }, "Hangi siparişe bağlansın?"),
+              React.createElement("select", { value: ocrAttachOrder, onChange: e => setOcrAttachOrder(e.target.value), style: { width: "100%", marginTop: 3, padding: "8px 10px", borderRadius: 6, border: "1px solid " + COLORS.border, fontSize: 12.5, boxSizing: "border-box" } },
+                React.createElement("option", { value: "" }, "— Sipariş Seç —"),
+                orders.map(o => React.createElement("option", { key: o.id, value: o.id }, o.id + " · " + o.customer))
+              )
+            )
+          ),
+          React.createElement("button", { onClick: saveOcrResult, disabled: !ocrAttachOrder, style: { width: "100%", marginTop: 12, background: ocrAttachOrder ? COLORS.accent : COLORS.border, color: "#fff", border: "none", borderRadius: 8, padding: "11px 0", fontWeight: 700, fontSize: 13, cursor: ocrAttachOrder ? "pointer" : "default" } }, "✓ Siparişe Kaydet"),
+          React.createElement("details", { style: { marginTop: 10 } },
+            React.createElement("summary", { style: { fontSize: 10.5, color: COLORS.inkDim, cursor: "pointer" } }, "Ham OCR metnini gör"),
+            React.createElement("pre", { style: { fontSize: 10, color: COLORS.inkDim, whiteSpace: "pre-wrap", marginTop: 6, fontFamily: fontMono } }, ocrRawText)
+          )
+        )
+      ),
+      tab === "tahmin" && (() => {
+        const lastVal = fiberConsumptionHistory[fiberConsumptionHistory.length - 1].value;
+        const avgGrowth = (lastVal - fiberConsumptionHistory[0].value) / (fiberConsumptionHistory.length - 1);
+        const forecastNext = Math.round(lastVal + avgGrowth);
+        const forecastData = [...fiberConsumptionHistory, { label: "Ağu (tahmin)", value: forecastNext }];
+        return React.createElement("div", null,
+          React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginBottom: 14, lineHeight: 1.4 } }, "Son 5 ayın elyaf tüketim verisine dayanan basit bir eğilim (trend) tahmini. Gerçek sisteme geçince kur hareketleri ve mevsimsellik de hesaba katan daha gelişmiş bir model kurulacak."),
+          React.createElement(Card, { accentLeft: COLORS.accent },
+            React.createElement("div", { style: { fontSize: 10.5, color: COLORS.inkDim, fontWeight: 600, textTransform: "uppercase" } }, "Önümüzdeki Ay Tahmini İhtiyaç"),
+            React.createElement("div", { style: { fontFamily: "'Space Grotesk','Inter',sans-serif", fontWeight: 700, fontSize: 28, color: COLORS.accent, marginTop: 4 } }, forecastNext.toLocaleString("tr-TR") + " kg"),
+            React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginTop: 2 } }, (avgGrowth >= 0 ? "↑" : "↓") + " Aylık ortalama değişim: " + (avgGrowth >= 0 ? "+" : "") + Math.round(avgGrowth) + " kg")
+          ),
+          React.createElement(SectionLabel, null, "Elyaf Tüketim Trendi"),
+          React.createElement(Card, null, React.createElement(TrendChart, { data: forecastData, color: COLORS.accent })),
+          React.createElement(SectionLabel, null, "Tahminin Dayandığı Veri"),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            fiberConsumptionHistory.map(d => React.createElement("div", { key: d.label, style: { display: "flex", justifyContent: "space-between", background: COLORS.panel, border: "1px solid " + COLORS.border, borderRadius: 8, padding: "10px 12px" } },
+              React.createElement("span", { style: { fontSize: 12.5, fontWeight: 600 } }, d.label),
+              React.createElement("span", { style: { fontFamily: fontMono, fontSize: 12.5 } }, d.value.toLocaleString("tr-TR") + " kg")
+            ))
+          )
+        );
+      })(),
+      tab === "vardiya" && React.createElement("div", null,
+        React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginBottom: 12, lineHeight: 1.4 } }, "Vardiya değişiminde sözlü aktarım yerine burada not bırak — gelen vardiya, aşağı inip sormak yerine buradan okusun."),
+        React.createElement("form", {
+          onSubmit: (e) => {
+            e.preventDefault();
+            const f = e.target;
+            if (!f.text.value.trim()) return;
+            setShiftNotes(prev => [{ id: Date.now(), person: f.person.value || "İsimsiz", time: new Date().toLocaleString("tr-TR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }), text: f.text.value }, ...prev]);
+            f.reset();
+          },
+          style: { display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }
+        },
+          React.createElement("input", { name: "person", placeholder: "Adın (örn. Ahmet - Gündüz Vardiyası)", style: { padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13, outline: "none" } }),
+          React.createElement("textarea", { name: "text", placeholder: "Not: örn. Raşel 3'te sorun var, elyaf ikmali gerekiyor...", rows: 3, style: { padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13, outline: "none", resize: "vertical", fontFamily: fontBody } }),
+          React.createElement("button", { type: "submit", style: { background: COLORS.accent, color: "#fff", border: "none", borderRadius: 8, padding: "11px 0", fontWeight: 700, fontSize: 13.5, cursor: "pointer" } }, "+ Not Ekle")
+        ),
+        React.createElement(SectionLabel, { count: shiftNotes.length }, "Vardiya Kayıtları"),
+        React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
+          shiftNotes.map(n => React.createElement(Card, { key: n.id, accentLeft: COLORS.thread },
+            React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginBottom: 6 } },
+              React.createElement("span", { style: { fontWeight: 700, fontSize: 12.5 } }, n.person),
+              React.createElement("span", { style: { fontSize: 10.5, color: COLORS.inkDim, fontFamily: fontMono } }, n.time)
+            ),
+            React.createElement("div", { style: { fontSize: 12.5, lineHeight: 1.5 } }, n.text)
+          ))
         )
       )
     ),
     React.createElement("div", { style: { position: "fixed", bottom: 0, left: 0, right: 0, background: COLORS.panel, borderTop: "1px solid " + COLORS.border, display: "flex", padding: "6px 4px calc(6px + env(safe-area-inset-bottom))", boxShadow: "0 -2px 10px rgba(0,0,0,0.05)", zIndex: 20, overflowX: "auto" } },
-      [["ozet","Özet"],["uretim","Örme"],["boyahane","Boyahane"],["stok","Stok"],["urunler","Ürünler"],["kalite","Kalite Kartı"],["barkod","Barkod"],["siparis","Sipariş"],["maliyet","Maliyet"]].map(([key,label]) => {
+      [["ozet","Özet"],["uretim","Örme"],["boyahane","Boyahane"],["stok","Stok"],["urunler","Ürünler"],["kalite","Kalite Kartı"],["barkod","Barkod"],["tahmin","Tahmin"],["vardiya","Vardiya"],["siparis","Sipariş"],["maliyet","Maliyet"]].map(([key,label]) => {
         const active = tab === key;
         return React.createElement("button", { key, onClick: () => setTab(key), style: { flex: "0 0 68px", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: "6px 2px", border: "none", background: "transparent", cursor: "pointer" } },
           React.createElement(NavIcon, { tabKey: key, active }),
