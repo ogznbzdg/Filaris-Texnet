@@ -159,6 +159,64 @@ const initialShiftNotes = [
   { id: 1, person: "Ahmet (Gündüz Vardiyası)", time: "29 Tem, 16:00", text: "Raşel 3'te iplik kopması oldu, 20 dk duraksama yaşandı, telafi edildi. Elyaf stoku (Elastan) azalıyor, ikmal gerekebilir." },
   { id: 2, person: "Mehmet (Gece Vardiyası)", time: "28 Tem, 23:30", text: "KZ-2 kazanı planlı bakımdan çıktı, sorunsuz çalışıyor. SP-1039 sevkiyata hazır, irsaliye bekliyor." },
 ];
+const companyInfo = {
+  name: "Filaris Texnet Tekstil San. ve Tic. Ltd. Şti.",
+  address: "Organize Sanayi Bölgesi, 3. Cadde No:14, Bursa",
+  taxOffice: "Bursa Vergi Dairesi", taxNo: "1234567890", phone: "+90 224 000 00 00",
+};
+
+function buildIrsaliyeHtml(order, irsaliyeNo) {
+  const today = new Date().toLocaleDateString("tr-TR");
+  return `
+  <html><head><meta charset="utf-8"><title>İrsaliye ${irsaliyeNo}</title>
+  <style>
+    body{font-family:'Segoe UI',Arial,sans-serif;color:#1B1B1F;padding:32px;max-width:760px;margin:0 auto;}
+    .head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #0F6CBD;padding-bottom:16px;margin-bottom:20px;}
+    .logo{width:44px;height:44px;border-radius:10px;background:#0F6CBD;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;}
+    .firma{font-size:12px;color:#444;line-height:1.5;margin-top:6px;}
+    h1{font-size:20px;margin:0;}
+    .irs-no{text-align:right;} .irs-no .no{font-size:22px;font-weight:700;color:#0F6CBD;}
+    table{width:100%;border-collapse:collapse;font-size:13px;margin-top:18px;}
+    th{background:#F3F3F3;text-align:left;padding:8px;border-bottom:2px solid #ddd;font-size:11px;text-transform:uppercase;color:#666;}
+    td{padding:10px 8px;border-bottom:1px solid #eee;}
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;margin-top:20px;font-size:12.5px;}
+    .info-grid .label{color:#888;font-size:10.5px;} .info-grid .val{font-weight:600;margin-top:2px;}
+    .signs{display:flex;justify-content:space-between;margin-top:60px;}
+    .sign{width:45%;border-top:1px solid #999;padding-top:6px;font-size:11px;color:#666;text-align:center;}
+    .foot{margin-top:30px;font-size:10px;color:#999;border-top:1px solid #eee;padding-top:10px;}
+  </style></head><body>
+    <div class="head">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="logo">F</div>
+          <h1>${companyInfo.name}</h1>
+        </div>
+        <div class="firma">${companyInfo.address}<br>${companyInfo.taxOffice} · VKN: ${companyInfo.taxNo} · ${companyInfo.phone}</div>
+      </div>
+      <div class="irs-no">
+        <div style="font-size:11px;color:#888;">SEVK İRSALİYESİ</div>
+        <div class="no">${irsaliyeNo}</div>
+        <div style="font-size:11px;color:#888;margin-top:4px;">${today}</div>
+      </div>
+    </div>
+    <div class="info-grid">
+      <div><div class="label">Alıcı</div><div class="val">${order.customer}</div></div>
+      <div><div class="label">Sipariş No</div><div class="val">${order.id}</div></div>
+      <div><div class="label">Taşıyıcı Firma</div><div class="val">…………………………</div></div>
+      <div><div class="label">Plaka</div><div class="val">…………………………</div></div>
+    </div>
+    <table>
+      <thead><tr><th>Ürün</th><th>Miktar</th><th>Birim</th></tr></thead>
+      <tbody><tr><td>${order.product}</td><td>${order.produced.toLocaleString("tr-TR")}</td><td>m</td></tr></tbody>
+    </table>
+    <div class="signs">
+      <div class="sign">Teslim Eden</div>
+      <div class="sign">Teslim Alan</div>
+    </div>
+    <div class="foot">Bu belge Filaris Texnet sistemi üzerinden oluşturulmuş bir sevkiyat taslağıdır. Resmî e-İrsaliye, kayıtlı entegratör (örn. Zirve) üzerinden ayrıca düzenlenmelidir.</div>
+  </body></html>`;
+}
+
 const initialOrders = [
   { id: "SP-1042", customer: "Nova Tekstil", product: "Ecru Dantel 140cm", qty: 800, produced: 612, stage: "Örme", due: "28 Tem", irsaliye: "—", fatura: "—" },
   { id: "SP-1039", customer: "Lima Konfeksiyon", product: "Beyaz Dantel 90cm", qty: 500, produced: 500, stage: "Sevke hazır", due: "22 Tem", irsaliye: "IRS-3381", fatura: "Kesilmedi" },
@@ -985,7 +1043,18 @@ function MainBoard({ onLogout, lang, setLang }) {
               ...orders.map(o => [o.id, o.customer, o.product, o.qty, o.produced, o.stage, o.due, o.irsaliye, o.fatura]),
             ]),
             style: { display: "flex", alignItems: "center", gap: 6, background: "transparent", border: "1px solid " + COLORS.border, borderRadius: 6, padding: "7px 12px", fontSize: 11.5, fontWeight: 600, color: COLORS.inkDim, cursor: "pointer", fontFamily: fontBody }
-          }, "⬇ Excel'e Aktar (.csv)")
+          }, "⬇ Excel'e Aktar (.csv)"),
+          React.createElement("button", {
+            onClick: () => downloadCsv("zirve-irsaliye-aktarim.csv", [
+              ["Cari Kodu", "Cari Adı", "Stok Kodu", "Stok Adı", "Miktar", "Birim", "Tarih", "İrsaliye No", "Açıklama"],
+              ...orders.map(o => [
+                o.customer.replace(/\s+/g, "").slice(0, 8).toUpperCase(),
+                o.customer, o.id, o.product, o.produced, "MT",
+                new Date().toLocaleDateString("tr-TR"), o.irsaliye !== "—" ? o.irsaliye : "", "Filaris Texnet sisteminden aktarıldı",
+              ]),
+            ]),
+            style: { display: "flex", alignItems: "center", gap: 6, background: "transparent", border: "1px solid " + COLORS.dye, borderRadius: 6, padding: "7px 12px", fontSize: 11.5, fontWeight: 600, color: COLORS.dye, cursor: "pointer", fontFamily: fontBody }
+          }, "🧮 Zirve İçin Excel")
         ),
         importError && React.createElement("div", { style: { background: "#FDECEA", border: "1px solid " + COLORS.alert + "44", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: COLORS.alert } }, importError),
         orders.map(o => {
@@ -1013,7 +1082,17 @@ function MainBoard({ onLogout, lang, setLang }) {
             React.createElement("div", { style: { marginTop: 10, paddingTop: 10, borderTop: "1px solid " + COLORS.border, display: "flex", justifyContent: "space-between", fontSize: 11, fontFamily: fontMono, color: COLORS.inkDim } },
               React.createElement("span", null, "İrsaliye: " + o.irsaliye),
               React.createElement("span", null, "Fatura: " + o.fatura)
-            )
+            ),
+            React.createElement("button", {
+              onClick: () => {
+                const newIrsNo = o.irsaliye !== "—" ? o.irsaliye : "IRS-" + (3400 + Math.floor(Math.random() * 500));
+                if (o.irsaliye === "—") setOrders(prev => prev.map(x => x.id === o.id ? { ...x, irsaliye: newIrsNo } : x));
+                const html = buildIrsaliyeHtml(o, newIrsNo);
+                const w = window.open("", "_blank");
+                if (w) { w.document.write(html); w.document.close(); setTimeout(() => w.print(), 400); }
+              },
+              style: { width: "100%", marginTop: 10, background: "transparent", border: "1px solid " + COLORS.accent, color: COLORS.accent, borderRadius: 6, padding: "9px 0", fontWeight: 700, fontSize: 12, cursor: "pointer", fontFamily: fontBody }
+            }, "🧾 İrsaliye Oluştur (Yazdır / PDF)")
           );
         })
       ),
