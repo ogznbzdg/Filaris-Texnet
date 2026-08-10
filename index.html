@@ -159,13 +159,13 @@ const initialShiftNotes = [
   { id: 1, person: "Ahmet (Gündüz Vardiyası)", time: "29 Tem, 16:00", text: "Raşel 3'te iplik kopması oldu, 20 dk duraksama yaşandı, telafi edildi. Elyaf stoku (Elastan) azalıyor, ikmal gerekebilir." },
   { id: 2, person: "Mehmet (Gece Vardiyası)", time: "28 Tem, 23:30", text: "KZ-2 kazanı planlı bakımdan çıktı, sorunsuz çalışıyor. SP-1039 sevkiyata hazır, irsaliye bekliyor." },
 ];
-const companyInfo = {
+const initialCompanyInfo = {
   name: "Filaris Texnet Tekstil San. ve Tic. Ltd. Şti.",
   address: "Organize Sanayi Bölgesi, 3. Cadde No:14, Bursa",
   taxOffice: "Bursa Vergi Dairesi", taxNo: "1234567890", phone: "+90 224 000 00 00",
 };
 
-function buildIrsaliyeHtml(order, irsaliyeNo) {
+function buildIrsaliyeHtml(order, irsaliyeNo, company) {
   const today = new Date().toLocaleDateString("tr-TR");
   return `
   <html><head><meta charset="utf-8"><title>İrsaliye ${irsaliyeNo}</title>
@@ -189,9 +189,9 @@ function buildIrsaliyeHtml(order, irsaliyeNo) {
       <div>
         <div style="display:flex;align-items:center;gap:10px;">
           <div class="logo">F</div>
-          <h1>${companyInfo.name}</h1>
+          <h1>${company.name}</h1>
         </div>
-        <div class="firma">${companyInfo.address}<br>${companyInfo.taxOffice} · VKN: ${companyInfo.taxNo} · ${companyInfo.phone}</div>
+        <div class="firma">${company.address}<br>${company.taxOffice} · VKN: ${company.taxNo} · ${company.phone}</div>
       </div>
       <div class="irs-no">
         <div style="font-size:11px;color:#888;">SEVK İRSALİYESİ</div>
@@ -496,6 +496,8 @@ function MainBoard({ onLogout, lang, setLang }) {
   const [certNumber, setCertNumber] = useState("GRS-2026-00417");
   const [tcNumber, setTcNumber] = useState("TC-88213");
   const [notifOpen, setNotifOpen] = useState(false);
+  const [companyInfo, setCompanyInfo] = useState(initialCompanyInfo);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [orders, setOrders] = useState(initialOrders);
   const [stockLayers, setStockLayers] = useState(initialStockLayers);
   const [newOrderOpen, setNewOrderOpen] = useState(false);
@@ -736,6 +738,12 @@ function MainBoard({ onLogout, lang, setLang }) {
                   React.createElement("span", { style: { fontSize: 12, lineHeight: 1.4 } }, n.text)
                 ))
               )
+            )
+          ),
+          React.createElement("button", { onClick: () => setSettingsOpen(true), title: "Firma Ayarları", style: { border: "1px solid " + COLORS.border, background: "transparent", borderRadius: 6, width: 34, height: 34, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" } },
+            React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 24 24", fill: "none", stroke: COLORS.inkDim, strokeWidth: 1.8 },
+              React.createElement("circle", { cx: 12, cy: 12, r: 3 }),
+              React.createElement("path", { d: "M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z", strokeLinecap: "round", strokeLinejoin: "round" })
             )
           ),
           React.createElement("button", { onClick: onLogout, style: { border: "1px solid " + COLORS.border, background: "transparent", borderRadius: 6, padding: "6px 10px", fontSize: 11, color: COLORS.inkDim, cursor: "pointer", fontFamily: fontBody } }, t("logout"))
@@ -1087,7 +1095,7 @@ function MainBoard({ onLogout, lang, setLang }) {
               onClick: () => {
                 const newIrsNo = o.irsaliye !== "—" ? o.irsaliye : "IRS-" + (3400 + Math.floor(Math.random() * 500));
                 if (o.irsaliye === "—") setOrders(prev => prev.map(x => x.id === o.id ? { ...x, irsaliye: newIrsNo } : x));
-                const html = buildIrsaliyeHtml(o, newIrsNo);
+                const html = buildIrsaliyeHtml(o, newIrsNo, companyInfo);
                 const w = window.open("", "_blank");
                 if (w) { w.document.write(html); w.document.close(); setTimeout(() => w.print(), 400); }
               },
@@ -1456,6 +1464,30 @@ function MainBoard({ onLogout, lang, setLang }) {
           ))
         )
       )
+    ),
+    settingsOpen && React.createElement(FormModal, {
+      title: "Firma Ayarları",
+      submitLabel: "Kaydet",
+      onClose: () => setSettingsOpen(false),
+      onSubmit: (e) => {
+        e.preventDefault();
+        const f = e.target;
+        setCompanyInfo({
+          name: f.name.value || companyInfo.name,
+          address: f.address.value || companyInfo.address,
+          taxOffice: f.taxOffice.value || companyInfo.taxOffice,
+          taxNo: f.taxNo.value || companyInfo.taxNo,
+          phone: f.phone.value || companyInfo.phone,
+        });
+        setSettingsOpen(false);
+      }
+    },
+      React.createElement(FormField, { name: "name", label: "Firma Adı", defaultValue: companyInfo.name, required: true }),
+      React.createElement(FormField, { name: "address", label: "Adres", defaultValue: companyInfo.address }),
+      React.createElement(FormField, { name: "taxOffice", label: "Vergi Dairesi", defaultValue: companyInfo.taxOffice }),
+      React.createElement(FormField, { name: "taxNo", label: "Vergi Numarası", defaultValue: companyInfo.taxNo }),
+      React.createElement(FormField, { name: "phone", label: "Telefon", defaultValue: companyInfo.phone }),
+      React.createElement("div", { style: { fontSize: 10.5, color: COLORS.inkDim, lineHeight: 1.4 } }, "Bu bilgiler irsaliye ve raporlarda kullanılır. Şu an bu oturumda saklanır — gerçek sisteme geçince kalıcı olacak.")
     ),
     React.createElement("div", { style: { position: "fixed", bottom: 0, left: 0, right: 0, background: COLORS.panel, borderTop: "1px solid " + COLORS.border, display: "flex", padding: "6px 4px calc(6px + env(safe-area-inset-bottom))", boxShadow: "0 -2px 10px rgba(0,0,0,0.05)", zIndex: 20 } },
       TAB_CATEGORIES.map((cat) => {
