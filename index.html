@@ -188,7 +188,7 @@ function buildIrsaliyeHtml(order, irsaliyeNo, company) {
     <div class="head">
       <div>
         <div style="display:flex;align-items:center;gap:10px;">
-          <div class="logo">F</div>
+          <div class="logo"><svg width="24" height="24" viewBox="0 0 512 512"><g fill="none" stroke="#fff" stroke-width="16" stroke-linejoin="round"><path d="M256 130 L332 206 L256 282 L180 206 Z"/><path d="M256 282 L332 358 L256 434 L180 358 Z" opacity="0.55"/><path d="M180 206 L256 282 L180 358 L104 282 Z" opacity="0.55"/><path d="M332 206 L408 282 L332 358 L256 282 Z" opacity="0.55"/></g></svg></div>
           <h1>${company.name}</h1>
         </div>
         <div class="firma">${company.address}<br>${company.taxOffice} · VKN: ${company.taxNo} · ${company.phone}</div>
@@ -384,10 +384,13 @@ function LoginScreen({ onLogin, lang, setLang }) {
 function LogoMark({ size }) {
   return React.createElement("svg", { width: size, height: size, viewBox: "0 0 512 512", style: { borderRadius: 8, flexShrink: 0 } },
     React.createElement("rect", { width: 512, height: 512, rx: 112, fill: "#0F6CBD" }),
-    React.createElement("circle", { cx: 256, cy: 256, r: 150, fill: "none", stroke: "#FFFFFF", strokeWidth: 26 }),
-    React.createElement("circle", { cx: 256, cy: 256, r: 96, fill: "none", stroke: "#FFFFFF", strokeWidth: 26 }),
-    React.createElement("circle", { cx: 256, cy: 256, r: 42, fill: "#FFFFFF" }),
-    React.createElement("path", { d: "M256 106 A150 150 0 0 1 406 256", fill: "none", stroke: "#8FC1EE", strokeWidth: 26, strokeLinecap: "round" })
+    React.createElement("g", { fill: "none", stroke: "#FFFFFF", strokeWidth: 10, strokeLinejoin: "round" },
+      React.createElement("path", { d: "M256 130 L332 206 L256 282 L180 206 Z" }),
+      React.createElement("path", { d: "M256 282 L332 358 L256 434 L180 358 Z", opacity: 0.55 }),
+      React.createElement("path", { d: "M180 206 L256 282 L180 358 L104 282 Z", opacity: 0.55 }),
+      React.createElement("path", { d: "M332 206 L408 282 L332 358 L256 282 Z", opacity: 0.55 })
+    ),
+    React.createElement("circle", { cx: 256, cy: 206, r: 7, fill: "#FFFFFF" })
   );
 }
 function NavIcon({ tabKey, active, onBadge, color }) {
@@ -473,6 +476,32 @@ function TrendChart({ data, color, height }) {
     )
   );
 }
+function Sidebar({ tab, setTab, t, lang, setLang, onLogout }) {
+  return React.createElement("div", { style: { width: 232, flexShrink: 0, minHeight: "100vh", background: COLORS.panel, borderRight: "1px solid " + COLORS.border, display: "flex", flexDirection: "column", padding: "20px 14px", position: "sticky", top: 0 } },
+    React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10, padding: "0 8px", marginBottom: 28 } },
+      React.createElement(LogoMark, { size: 34 }),
+      React.createElement("div", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 15, lineHeight: 1.15 } },
+        "Filaris ", React.createElement("span", { style: { color: COLORS.accent } }, "Texnet")
+      )
+    ),
+    React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 3, flex: 1 } },
+      TAB_CATEGORIES.map(cat => {
+        const active = cat.tabs.includes(tab);
+        const iconKey = cat.tabs[0];
+        return React.createElement("button", { key: cat.key, onClick: () => setTab(cat.tabs[0]), style: { display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 10, border: "none", background: active ? COLORS.accent + "12" : "transparent", cursor: "pointer", textAlign: "left" } },
+          React.createElement("div", { style: { width: 30, height: 30, borderRadius: 9, background: active ? COLORS.accent : COLORS.panelAlt, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 } },
+            React.createElement(NavIcon, { tabKey: iconKey, active, onBadge: active })
+          ),
+          React.createElement("span", { style: { fontSize: 13.5, fontWeight: active ? 700 : 500, color: active ? COLORS.accent : COLORS.ink, fontFamily: fontBody } }, t(cat.labelKey))
+        );
+      })
+    ),
+    React.createElement("div", { style: { borderTop: "1px solid " + COLORS.border, paddingTop: 14, display: "flex", flexDirection: "column", gap: 10 } },
+      React.createElement(LangToggle, { lang, setLang }),
+      React.createElement("button", { onClick: onLogout, style: { border: "1px solid " + COLORS.border, background: "transparent", borderRadius: 8, padding: "9px 0", fontSize: 12.5, color: COLORS.inkDim, cursor: "pointer", fontFamily: fontBody, fontWeight: 600 } }, t("logout"))
+    )
+  );
+}
 function StatCard({ label, value, sub, color, onClick, icon }) {
   return React.createElement("button", { onClick, style: { textAlign: "left", background: COLORS.panel, border: "1px solid " + COLORS.border, borderRadius: 12, padding: 14, cursor: "pointer", boxShadow: COLORS.shadow, width: "100%" } },
     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: 8 } },
@@ -497,6 +526,13 @@ function SectionLabel({ children, count }) {
 
 function MainBoard({ onLogout, lang, setLang }) {
   const t = (k) => translations[lang][k] || translations.tr[k] || k;
+  const [isDesktop, setIsDesktop] = useState(typeof window !== "undefined" && window.matchMedia("(min-width: 900px)").matches);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 900px)");
+    const handler = (e) => setIsDesktop(e.matches);
+    mq.addEventListener ? mq.addEventListener("change", handler) : mq.addListener(handler);
+    return () => { mq.removeEventListener ? mq.removeEventListener("change", handler) : mq.removeListener(handler); };
+  }, []);
   const [tab, setTab] = useState("ozet");
   const [stockTab, setStockTab] = useState("iplik");
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -711,7 +747,9 @@ function MainBoard({ onLogout, lang, setLang }) {
     setOcrResult(null); setOcrRawText(""); setOcrAttachOrder("");
   };
 
-  return React.createElement("div", { style: { minHeight: "100vh", background: COLORS.base, color: COLORS.ink, fontFamily: fontBody, paddingBottom: 76 } },
+  return React.createElement("div", { style: { display: isDesktop ? "flex" : "block", minHeight: "100vh", background: COLORS.base } },
+    isDesktop && React.createElement(Sidebar, { tab, setTab, t, lang, setLang, onLogout }),
+    React.createElement("div", { style: { flex: 1, minHeight: "100vh", background: COLORS.base, color: COLORS.ink, fontFamily: fontBody, paddingBottom: isDesktop ? 24 : 76 } },
     React.createElement("div", { style: { background: COLORS.panel, borderBottom: "1px solid " + COLORS.border, padding: "14px 20px", position: "sticky", top: 0, zIndex: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" } },
       React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } },
         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10 } },
@@ -768,7 +806,7 @@ function MainBoard({ onLogout, lang, setLang }) {
         );
       })()
     ),
-    React.createElement("div", { style: { padding: "18px 16px", maxWidth: 720, margin: "0 auto" } },
+    React.createElement("div", { style: { padding: isDesktop ? "24px 32px" : "18px 16px", maxWidth: isDesktop ? 1000 : 720, margin: "0 auto" } },
       tab === "ozet" && (() => {
         const runningCount = machines.filter(m => m.status === "çalışıyor").length;
         const idleCount = machines.filter(m => m.status === "boşta").length;
@@ -777,7 +815,7 @@ function MainBoard({ onLogout, lang, setLang }) {
         const criticalTotal = criticalRaw.length + criticalMamul.length;
         return React.createElement("div", null,
           React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginBottom: 12 } }, "Bugün · " + new Date().toLocaleDateString("tr-TR", { day: "2-digit", month: "long", year: "numeric" })),
-          React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 } },
+          React.createElement("div", { style: { display: "grid", gridTemplateColumns: isDesktop ? "1fr 1fr 1fr" : "1fr 1fr", gap: 10 } },
             React.createElement(StatCard, { label: t("stat_today_prod"), value: totalToday.toLocaleString("tr-TR") + " m", sub: runningCount + " " + t("running"), color: COLORS.ok, icon: "uretim", onClick: () => setTab("uretim") }),
             React.createElement(StatCard, { label: t("stat_machine"), value: runningCount + "/" + machines.length, sub: idleCount + " " + t("idle"), color: COLORS.accent, icon: "uretim", onClick: () => setTab("uretim") }),
             React.createElement(StatCard, { label: t("stat_critical_stock"), value: criticalTotal, sub: criticalTotal > 0 ? "acil ikmal gerekiyor" : "sorun yok", color: criticalTotal > 0 ? COLORS.alert : COLORS.ok, icon: "stok", onClick: () => setTab("stok") }),
@@ -995,7 +1033,7 @@ function MainBoard({ onLogout, lang, setLang }) {
         )
       ),
       tab === "urunler" && React.createElement(React.Fragment, null,
-        React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 } },
+        React.createElement("div", { style: { display: "grid", gridTemplateColumns: isDesktop ? "repeat(4, 1fr)" : "1fr 1fr", gap: 10 } },
           products.map(p => React.createElement("button", {
             key: p.code, onClick: () => setSelectedProduct(p),
             style: { textAlign: "left", background: COLORS.panel, border: "1px solid " + COLORS.border, borderRadius: 8, overflow: "hidden", boxShadow: COLORS.shadow, cursor: "pointer", padding: 0 }
@@ -1497,7 +1535,7 @@ function MainBoard({ onLogout, lang, setLang }) {
       React.createElement(FormField, { name: "phone", label: "Telefon", defaultValue: companyInfo.phone }),
       React.createElement("div", { style: { fontSize: 10.5, color: COLORS.inkDim, lineHeight: 1.4 } }, "Bu bilgiler irsaliye ve raporlarda kullanılır. Şu an bu oturumda saklanır — gerçek sisteme geçince kalıcı olacak.")
     ),
-    React.createElement("div", { style: { position: "fixed", bottom: 0, left: 0, right: 0, background: COLORS.panel, borderTop: "1px solid " + COLORS.border, display: "flex", padding: "8px 4px calc(8px + env(safe-area-inset-bottom))", boxShadow: "0 -4px 16px rgba(15,20,25,0.06)", zIndex: 20 } },
+    !isDesktop && React.createElement("div", { style: { position: "fixed", bottom: 0, left: 0, right: 0, background: COLORS.panel, borderTop: "1px solid " + COLORS.border, display: "flex", padding: "8px 4px calc(8px + env(safe-area-inset-bottom))", boxShadow: "0 -4px 16px rgba(15,20,25,0.06)", zIndex: 20 } },
       TAB_CATEGORIES.map((cat) => {
         const active = cat.tabs.includes(tab);
         const iconKey = cat.tabs[0];
@@ -1508,6 +1546,7 @@ function MainBoard({ onLogout, lang, setLang }) {
           React.createElement("span", { style: { fontSize: 10.5, fontWeight: active ? 700 : 500, color: active ? COLORS.accent : COLORS.inkDim, fontFamily: fontBody, textAlign: "center", lineHeight: 1.1 } }, t(cat.labelKey))
         );
       })
+    )
     )
   );
 }

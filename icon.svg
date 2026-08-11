@@ -1,9 +1,12 @@
-<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img">
-<title>Dantel Takip uygulama ikonu</title>
-<desc>Yuvarlatılmış kare arka plan üzerinde stilize iplik bobini simgesi</desc>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+<title>Filaris Texnet - Logo Önerisi 3: Dantel Ağ Deseni</title>
 <rect width="512" height="512" rx="112" fill="#0F6CBD"/>
-<circle cx="256" cy="256" r="150" fill="none" stroke="#FFFFFF" stroke-width="22"/>
-<circle cx="256" cy="256" r="96" fill="none" stroke="#FFFFFF" stroke-width="22"/>
-<circle cx="256" cy="256" r="42" fill="#FFFFFF"/>
-<path d="M256 106 A150 150 0 0 1 406 256" fill="none" stroke="#8FC1EE" stroke-width="22" stroke-linecap="round"/>
+<!-- Dantel/kumaş dokusundaki baklava (diamond mesh) deseninden esinlenen minimal ağ -->
+<g fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linejoin="round">
+  <path d="M256 130 L332 206 L256 282 L180 206 Z"/>
+  <path d="M256 282 L332 358 L256 434 L180 358 Z" opacity="0.55"/>
+  <path d="M180 206 L256 282 L180 358 L104 282 Z" opacity="0.55"/>
+  <path d="M332 206 L408 282 L332 358 L256 282 Z" opacity="0.55"/>
+</g>
+<circle cx="256" cy="206" r="7" fill="#FFFFFF"/>
 </svg>
