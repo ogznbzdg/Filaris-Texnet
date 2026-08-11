@@ -9,7 +9,7 @@
 <link rel="apple-touch-icon" href="icon.svg" />
 <link rel="manifest" href="manifest.json" />
 <style>
-  body { margin: 0; }
+  html, body { margin: 0; overflow-x: hidden; max-width: 100%; }
   * { box-sizing: border-box; }
 </style>
 </head>
@@ -188,7 +188,7 @@ function buildIrsaliyeHtml(order, irsaliyeNo, company) {
     <div class="head">
       <div>
         <div style="display:flex;align-items:center;gap:10px;">
-          <div class="logo"><svg width="24" height="24" viewBox="0 0 512 512"><g fill="none" stroke="#fff" stroke-width="16" stroke-linejoin="round"><path d="M256 130 L332 206 L256 282 L180 206 Z"/><path d="M256 282 L332 358 L256 434 L180 358 Z" opacity="0.55"/><path d="M180 206 L256 282 L180 358 L104 282 Z" opacity="0.55"/><path d="M332 206 L408 282 L332 358 L256 282 Z" opacity="0.55"/></g></svg></div>
+          <div class="logo">F</div>
           <h1>${company.name}</h1>
         </div>
         <div class="firma">${company.address}<br>${company.taxOffice} · VKN: ${company.taxNo} · ${company.phone}</div>
@@ -384,13 +384,10 @@ function LoginScreen({ onLogin, lang, setLang }) {
 function LogoMark({ size }) {
   return React.createElement("svg", { width: size, height: size, viewBox: "0 0 512 512", style: { borderRadius: 8, flexShrink: 0 } },
     React.createElement("rect", { width: 512, height: 512, rx: 112, fill: "#0F6CBD" }),
-    React.createElement("g", { fill: "none", stroke: "#FFFFFF", strokeWidth: 10, strokeLinejoin: "round" },
-      React.createElement("path", { d: "M256 130 L332 206 L256 282 L180 206 Z" }),
-      React.createElement("path", { d: "M256 282 L332 358 L256 434 L180 358 Z", opacity: 0.55 }),
-      React.createElement("path", { d: "M180 206 L256 282 L180 358 L104 282 Z", opacity: 0.55 }),
-      React.createElement("path", { d: "M332 206 L408 282 L332 358 L256 282 Z", opacity: 0.55 })
-    ),
-    React.createElement("circle", { cx: 256, cy: 206, r: 7, fill: "#FFFFFF" })
+    React.createElement("circle", { cx: 256, cy: 256, r: 150, fill: "none", stroke: "#FFFFFF", strokeWidth: 26 }),
+    React.createElement("circle", { cx: 256, cy: 256, r: 96, fill: "none", stroke: "#FFFFFF", strokeWidth: 26 }),
+    React.createElement("circle", { cx: 256, cy: 256, r: 42, fill: "#FFFFFF" }),
+    React.createElement("path", { d: "M256 106 A150 150 0 0 1 406 256", fill: "none", stroke: "#8FC1EE", strokeWidth: 26, strokeLinecap: "round" })
   );
 }
 function NavIcon({ tabKey, active, onBadge, color }) {
