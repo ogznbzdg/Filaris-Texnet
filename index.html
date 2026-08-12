@@ -60,6 +60,14 @@ function qrUrl(code, size) {
   return "https://api.qrserver.com/v1/create-qr-code/?size=" + (size || 120) + "x" + (size || 120) + "&data=" + encodeURIComponent("FILARIS:" + code);
 }
 
+const CONTENT_TRANSLATIONS = {
+  "Ecru Dantel 140cm": "Ecru Lace 140cm", "Beyaz Dantel 90cm": "White Lace 90cm",
+  "Siyah Dantel 120cm": "Black Lace 120cm", "Krem Dantel 100cm": "Cream Lace 100cm",
+  "Polyester İplik": "Polyester Yarn", "Naylon İplik": "Nylon Yarn",
+  "Polyester+Elastan Karışım": "Polyester+Elastane Blend", "Viskon İplik (planlanan)": "Viscose Yarn (planned)",
+  "Bekliyor": "Waiting", "Örme": "Knitting", "Boyahane": "Dyeing", "Sevke hazır": "Ready to ship", "Sevk edildi": "Shipped",
+  "çalışıyor": "running", "boşta": "idle", "tamamlandı": "completed",
+};
 const translations = {
   tr: {
     login_title: "Pilot Fabrika Girişi", login_user: "Kullanıcı adı", login_pass: "Şifre", login_btn: "Giriş Yap", login_demo: "Demo giriş",
@@ -523,6 +531,7 @@ function SectionLabel({ children, count }) {
 
 function MainBoard({ onLogout, lang, setLang }) {
   const t = (k) => translations[lang][k] || translations.tr[k] || k;
+  const tc = (s) => lang === "en" ? (CONTENT_TRANSLATIONS[s] || s) : s;
   const [isDesktop, setIsDesktop] = useState(typeof window !== "undefined" && window.matchMedia("(min-width: 900px)").matches);
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 900px)");
@@ -829,7 +838,7 @@ function MainBoard({ onLogout, lang, setLang }) {
               return React.createElement("button", { key: o.id, onClick: () => setTab("siparis"), style: { textAlign: "left", background: COLORS.panel, border: "1px solid " + COLORS.border, borderRadius: 8, padding: "10px 12px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" } },
                 React.createElement("div", null,
                   React.createElement("div", { style: { fontFamily: fontMono, fontSize: 11, color: COLORS.accent } }, o.id),
-                  React.createElement("div", { style: { fontSize: 12.5, fontWeight: 600, marginTop: 2 } }, o.customer + " · " + o.product)
+                  React.createElement("div", { style: { fontSize: 12.5, fontWeight: 600, marginTop: 2 } }, o.customer + " · " + tc(o.product))
                 ),
                 React.createElement("div", { style: { textAlign: "right" } },
                   React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim } }, o.due),
@@ -865,7 +874,7 @@ function MainBoard({ onLogout, lang, setLang }) {
               React.createElement("div", { style: { flex: 1, minWidth: 0 } },
                 React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 } },
                   React.createElement("span", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 15 } }, m.name),
-                  React.createElement(Pill, { label: m.status, color })
+                  React.createElement(Pill, { label: tc(m.status), color })
                 ),
                 React.createElement("div", { style: { fontSize: 12, color: COLORS.inkDim, marginBottom: 6 } }, m.order !== "—" ? m.order + " · Lot " + m.lot : "İş emri atanmadı"),
                 React.createElement("div", { style: { fontFamily: fontMono, fontSize: 13 } }, m.produced.toLocaleString("tr-TR"), React.createElement("span", { style: { color: COLORS.inkDim } }, " / " + m.target.toLocaleString("tr-TR") + " m"))
@@ -1115,7 +1124,7 @@ function MainBoard({ onLogout, lang, setLang }) {
             React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start" } },
               React.createElement("div", null,
                 React.createElement("div", { style: { fontFamily: fontMono, fontSize: 11, color: COLORS.accent } }, o.id),
-                React.createElement("div", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 14, marginTop: 2 } }, o.product),
+                React.createElement("div", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 14, marginTop: 2 } }, tc(o.product)),
                 React.createElement("div", { style: { fontSize: 12, color: COLORS.inkDim, marginTop: 2 } }, o.customer)
               ),
               React.createElement("div", { style: { textAlign: "right" } },
@@ -1129,7 +1138,7 @@ function MainBoard({ onLogout, lang, setLang }) {
               ),
               React.createElement("span", { style: { fontFamily: fontMono, fontSize: 12, color: COLORS.inkDim, whiteSpace: "nowrap" } }, o.produced + "/" + o.qty + " m")
             ),
-            React.createElement("div", { style: { marginTop: 8 } }, React.createElement(Pill, { label: o.stage, color: stageColor })),
+            React.createElement("div", { style: { marginTop: 8 } }, React.createElement(Pill, { label: tc(o.stage), color: stageColor })),
             React.createElement("div", { style: { marginTop: 10, paddingTop: 10, borderTop: "1px solid " + COLORS.border, display: "flex", justifyContent: "space-between", fontSize: 11, fontFamily: fontMono, color: COLORS.inkDim } },
               React.createElement("span", null, "İrsaliye: " + o.irsaliye),
               React.createElement("span", null, "Fatura: " + o.fatura)
@@ -1225,8 +1234,8 @@ function MainBoard({ onLogout, lang, setLang }) {
             React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start" } },
               React.createElement("div", null,
                 React.createElement("div", { style: { fontFamily: fontMono, fontSize: 11, color: COLORS.accent } }, c.orderId),
-                React.createElement("div", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 14, marginTop: 2 } }, c.product),
-                React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginTop: 2 } }, c.fiberName + " · " + c.fiberKg + " kg")
+                React.createElement("div", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 14, marginTop: 2 } }, tc(c.product)),
+                React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginTop: 2 } }, tc(c.fiberName) + " · " + c.fiberKg + " kg")
               ),
               React.createElement(Pill, { label: marginPct + "% marj", color: positive ? COLORS.ok : COLORS.alert })
             ),
