@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Filaris Texnet</title>
-<meta name="theme-color" content="#0F6CBD" />
+<meta name="theme-color" content="#0EA5B7" />
 <link rel="icon" type="image/svg+xml" href="icon.svg" />
 <link rel="apple-touch-icon" href="icon.svg" />
 <link rel="manifest" href="manifest.json" />
@@ -98,7 +98,7 @@ const TAB_CATEGORIES = [
 const COLORS = {
   base: "#F3F3F3", panel: "#FFFFFF", panelAlt: "#F7F7F8",
   border: "#E1E1E4", ink: "#1B1B1F", inkDim: "#6B6B72",
-  accent: "#0F6CBD", ok: "#0E8A3E", alert: "#C4291C", dye: "#7F5FD1",
+  accent: "#0EA5B7", ok: "#0E8A3E", alert: "#C4291C", dye: "#7F5FD1",
   shadow: "0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04)",
 };
 const fontDisplay = "'Segoe UI Variable','Segoe UI','Inter',sans-serif";
@@ -171,11 +171,11 @@ function buildIrsaliyeHtml(order, irsaliyeNo, company) {
   <html><head><meta charset="utf-8"><title>İrsaliye ${irsaliyeNo}</title>
   <style>
     body{font-family:'Segoe UI',Arial,sans-serif;color:#1B1B1F;padding:32px;max-width:760px;margin:0 auto;}
-    .head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #0F6CBD;padding-bottom:16px;margin-bottom:20px;}
-    .logo{width:44px;height:44px;border-radius:10px;background:#0F6CBD;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;}
+    .head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #0EA5B7;padding-bottom:16px;margin-bottom:20px;}
+    .logo{width:44px;height:44px;border-radius:10px;background:#0EA5B7;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;}
     .firma{font-size:12px;color:#444;line-height:1.5;margin-top:6px;}
     h1{font-size:20px;margin:0;}
-    .irs-no{text-align:right;} .irs-no .no{font-size:22px;font-weight:700;color:#0F6CBD;}
+    .irs-no{text-align:right;} .irs-no .no{font-size:22px;font-weight:700;color:#0EA5B7;}
     table{width:100%;border-collapse:collapse;font-size:13px;margin-top:18px;}
     th{background:#F3F3F3;text-align:left;padding:8px;border-bottom:2px solid #ddd;font-size:11px;text-transform:uppercase;color:#666;}
     td{padding:10px 8px;border-bottom:1px solid #eee;}
@@ -248,7 +248,7 @@ function buildInditexReportHtml(card, certOk, certStandard, certNumber, tcNumber
   <style>
     body{font-family:'Segoe UI',Arial,sans-serif;color:#1B1B1F;padding:36px;max-width:760px;margin:0 auto;}
     h1{font-size:20px;margin-bottom:2px;} .sub{color:#6B6B72;font-size:12px;margin-bottom:24px;}
-    h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:#0F6CBD;border-bottom:1px solid #E1E1E4;padding-bottom:6px;margin-top:26px;}
+    h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:#0EA5B7;border-bottom:1px solid #E1E1E4;padding-bottom:6px;margin-top:26px;}
     table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px;}
     td{padding:5px 0;border-bottom:1px solid #F0F0F2;}
     td.label{color:#6B6B72;width:44%;} td.val{font-weight:600;text-align:right;}
@@ -383,15 +383,15 @@ function LoginScreen({ onLogin, lang, setLang }) {
 }
 function LogoMark({ size }) {
   return React.createElement("svg", { width: size, height: size, viewBox: "0 0 512 512", style: { borderRadius: 8, flexShrink: 0 } },
-    React.createElement("rect", { width: 512, height: 512, rx: 112, fill: "#0F6CBD" }),
+    React.createElement("rect", { width: 512, height: 512, rx: 112, fill: "#0EA5B7" }),
     React.createElement("circle", { cx: 256, cy: 256, r: 150, fill: "none", stroke: "#FFFFFF", strokeWidth: 26 }),
     React.createElement("circle", { cx: 256, cy: 256, r: 96, fill: "none", stroke: "#FFFFFF", strokeWidth: 26 }),
     React.createElement("circle", { cx: 256, cy: 256, r: 42, fill: "#FFFFFF" }),
-    React.createElement("path", { d: "M256 106 A150 150 0 0 1 406 256", fill: "none", stroke: "#8FC1EE", strokeWidth: 26, strokeLinecap: "round" })
+    React.createElement("path", { d: "M256 106 A150 150 0 0 1 406 256", fill: "none", stroke: "#B7EEF2", strokeWidth: 26, strokeLinecap: "round" })
   );
 }
 function NavIcon({ tabKey, active, onBadge, color }) {
-  const c = color || (onBadge ? "#FFFFFF" : active ? "#0F6CBD" : "#9096A0");
+  const c = color || (onBadge ? "#FFFFFF" : active ? "#0EA5B7" : "#9096A0");
   const sw = active ? 2 : 1.7;
   const s = { width: 20, height: 20 };
   if (tabKey === "ozet") return React.createElement("svg", { style: s, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: sw },
@@ -1537,7 +1537,7 @@ function MainBoard({ onLogout, lang, setLang }) {
         const active = cat.tabs.includes(tab);
         const iconKey = cat.tabs[0];
         return React.createElement("button", { key: cat.key, onClick: () => setTab(cat.tabs[0]), style: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "2px 2px", border: "none", background: "transparent", cursor: "pointer" } },
-          React.createElement("div", { style: { width: 40, height: 32, borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", background: active ? COLORS.accent : "transparent", boxShadow: active ? "0 4px 10px rgba(15,108,189,0.35)" : "none" } },
+          React.createElement("div", { style: { width: 40, height: 32, borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", background: active ? COLORS.accent : "transparent", boxShadow: active ? "0 4px 10px rgba(14,165,183,0.35)" : "none" } },
             React.createElement(NavIcon, { tabKey: iconKey, active, onBadge: active })
           ),
           React.createElement("span", { style: { fontSize: 10.5, fontWeight: active ? 700 : 500, color: active ? COLORS.accent : COLORS.inkDim, fontFamily: fontBody, textAlign: "center", lineHeight: 1.1 } }, t(cat.labelKey))
