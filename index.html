@@ -122,6 +122,11 @@ const machines = [
   { id: "RS-03", name: "Raşel 3", order: "SP-1045", lot: "L-2214", target: 650, produced: 140, status: "çalışıyor", speedMPerMin: 1.4, hoursToday: 2 },
   { id: "RS-04", name: "Raşel 4", order: "—", lot: "—", target: 0, produced: 0, status: "boşta", speedMPerMin: 0, hoursToday: 0 },
 ];
+const MACHINE_LOG_TYPES = ["Duruş (Planlı)", "Arıza"];
+const initialMachineLogs = [
+  { id: 1, machine: "Raşel 1", type: "Duruş (Planlı)", hours: 0.5, reason: "Vardiya değişimi", time: "08:00" },
+  { id: 2, machine: "Raşel 3", type: "Arıza", hours: 1.2, reason: "İğne kırığı", time: "11:30" },
+];
 const dyeVats = [
   { id: "KZ-1", capacity: 300, lot: "L-2208", recipe: "Ecru V1.2", color: "#E7DFC6", qty: 280, status: "boyanıyor", eta: "2 sa" },
   { id: "KZ-2", capacity: 300, lot: "L-2201", recipe: "Siyah V2.0", color: "#22242A", qty: 300, status: "fiksaj", eta: "40 dk" },
@@ -581,6 +586,31 @@ function MainBoard({ onLogout, lang, setLang }) {
   const [richForm, setRichForm] = useState({ kod: "", kalite: "", en: "", gsm: "", komp: "", renk: "", desen: "" });
   const [richQrGenerated, setRichQrGenerated] = useState(null);
   const [wasteLogs, setWasteLogs] = useState(initialWasteLogs);
+  const [machineLogs, setMachineLogs] = useState(initialMachineLogs);
+  const [mLogForm, setMLogForm] = useState({ machine: machines[0].name, type: MACHINE_LOG_TYPES[0], hours: "", reason: "" });
+
+  const addMachineLog = () => {
+    if (!mLogForm.hours) return;
+    setMachineLogs(prev => [{ id: Date.now(), machine: mLogForm.machine, type: mLogForm.type, hours: Number(mLogForm.hours), reason: mLogForm.reason || "—", time: new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) }, ...prev]);
+    setMLogForm({ ...mLogForm, hours: "", reason: "" });
+  };
+
+  // OEE hesabı: Kullanılabilirlik (çalışma / planlı+duruş+arıza) × Performans (gerçek hız / ideal hız) × Kalite (1 - fire oranı)
+  const PLANNED_SHIFT_HOURS = 8;
+  const computeOEE = (m) => {
+    const stops = machineLogs.filter(l => l.machine === m.name);
+    const downHours = stops.reduce((s, l) => s + l.hours, 0);
+    const runHours = m.hoursToday;
+    const totalLogged = runHours + downHours;
+    const availabilityPct = totalLogged > 0 ? Math.min(1, runHours / totalLogged) : (runHours > 0 ? 1 : 0);
+    const idealRate = m.speedMPerMin || 1;
+    const actualRate = runHours > 0 ? m.produced / (runHours * 60) : 0;
+    const performancePct = idealRate > 0 ? Math.min(1, actualRate / idealRate) : 0;
+    const machineFire = wasteLogs.filter(w => w.machine === m.name).reduce((s, w) => s + w.qty, 0);
+    const qualityPct = (m.produced + machineFire) > 0 ? Math.max(0, m.produced / (m.produced + machineFire)) : 1;
+    const oee = availabilityPct * performancePct * qualityPct;
+    return { availabilityPct, performancePct, qualityPct, oee, downHours };
+  };
   const [wasteForm, setWasteForm] = useState({ machine: machines[0].name, lot: "", type: WASTE_TYPES[0], qty: "", operator: "" });
   const [lotOneriHedef, setLotOneriHedef] = useState("");
   const [lotOneriSonuc, setLotOneriSonuc] = useState(null);
@@ -939,6 +969,71 @@ function MainBoard({ onLogout, lang, setLang }) {
             )
           );
         })
+      ),
+      tab === "uretim" && React.createElement(React.Fragment, null,
+        React.createElement(SectionLabel, null, "OEE Panosu (Kullanılabilirlik × Performans × Kalite)"),
+        React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+          machines.map(m => {
+            const o = computeOEE(m);
+            const pct = Math.round(o.oee * 100);
+            const barColor = pct >= 85 ? COLORS.ok : pct >= 60 ? COLORS.thread : COLORS.alert;
+            return React.createElement(Card, { key: m.id },
+              React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 } },
+                React.createElement("div", { style: { fontWeight: 700, fontSize: 13 } }, m.name),
+                React.createElement("div", { style: { fontFamily: fontMono, fontWeight: 700, fontSize: 16, color: barColor } }, "OEE %" + pct)
+              ),
+              React.createElement("div", { style: { height: 6, borderRadius: 4, background: COLORS.panelAlt, overflow: "hidden", marginBottom: 8 } },
+                React.createElement("div", { style: { width: pct + "%", height: "100%", background: barColor } })
+              ),
+              React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, fontSize: 10.5, color: COLORS.inkDim, textAlign: "center" } },
+                React.createElement("div", null, "Kullanılabilirlik", React.createElement("div", { style: { fontFamily: fontMono, fontWeight: 700, fontSize: 12.5, color: COLORS.ink, marginTop: 2 } }, "%" + Math.round(o.availabilityPct * 100))),
+                React.createElement("div", null, "Performans", React.createElement("div", { style: { fontFamily: fontMono, fontWeight: 700, fontSize: 12.5, color: COLORS.ink, marginTop: 2 } }, "%" + Math.round(o.performancePct * 100))),
+                React.createElement("div", null, "Kalite", React.createElement("div", { style: { fontFamily: fontMono, fontWeight: 700, fontSize: 12.5, color: COLORS.ink, marginTop: 2 } }, "%" + Math.round(o.qualityPct * 100)))
+              ),
+              o.downHours > 0 && React.createElement("div", { style: { fontSize: 10.5, color: COLORS.alert, marginTop: 8 } }, "Bugün " + o.downHours + " saat duruş/arıza kaydı var")
+            );
+          })
+        ),
+
+        React.createElement(SectionLabel, null, "Duruş / Arıza Saati Kaydet"),
+        React.createElement(Card, null,
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 } },
+              React.createElement("div", null,
+                React.createElement("label", { style: { fontSize: 11.5, color: COLORS.inkDim, fontWeight: 600, display: "block", marginBottom: 4 } }, "Makine"),
+                React.createElement("select", { value: mLogForm.machine, onChange: e => setMLogForm({ ...mLogForm, machine: e.target.value }), style: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13, outline: "none" } },
+                  machines.map(m => React.createElement("option", { key: m.name, value: m.name }, m.name))
+                )
+              ),
+              React.createElement("div", null,
+                React.createElement("label", { style: { fontSize: 11.5, color: COLORS.inkDim, fontWeight: 600, display: "block", marginBottom: 4 } }, "Tür"),
+                React.createElement("select", { value: mLogForm.type, onChange: e => setMLogForm({ ...mLogForm, type: e.target.value }), style: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13, outline: "none" } },
+                  MACHINE_LOG_TYPES.map(w => React.createElement("option", { key: w, value: w }, w))
+                )
+              )
+            ),
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 2fr", gap: 8 } },
+              React.createElement(FormField, { label: "Süre (saat)", type: "number", step: "0.1", value: mLogForm.hours, onChange: e => setMLogForm({ ...mLogForm, hours: e.target.value }), placeholder: "0.5" }),
+              React.createElement(FormField, { label: "Neden", value: mLogForm.reason, onChange: e => setMLogForm({ ...mLogForm, reason: e.target.value }), placeholder: "İğne kırığı, bakım, vb." })
+            ),
+            React.createElement("button", { onClick: addMachineLog, style: { background: COLORS.dye, color: "#fff", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 700, fontSize: 13, cursor: "pointer", marginTop: 2 } }, "+ Kaydet")
+          )
+        ),
+
+        machineLogs.length > 0 && React.createElement(React.Fragment, null,
+          React.createElement(SectionLabel, { count: machineLogs.length }, "Duruş / Arıza Geçmişi"),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            machineLogs.map(l => React.createElement(Card, { key: l.id, accentLeft: l.type === "Arıza" ? COLORS.alert : COLORS.thread },
+              React.createElement("div", { style: { display: "flex", justifyContent: "space-between" } },
+                React.createElement("div", null,
+                  React.createElement("div", { style: { fontSize: 12.5, fontWeight: 700 } }, l.machine + " · " + l.type),
+                  React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginTop: 2 } }, l.reason + " · " + l.time)
+                ),
+                React.createElement("div", { style: { fontFamily: fontMono, fontWeight: 700, fontSize: 13 } }, l.hours + " sa")
+              )
+            ))
+          )
+        )
       ),
       tab === "boyahane" && React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
         dyeVats.map(v => {
