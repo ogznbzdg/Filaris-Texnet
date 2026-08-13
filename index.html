@@ -76,7 +76,7 @@ const translations = {
     login_title: "Pilot Fabrika Girişi", login_user: "Kullanıcı adı", login_pass: "Şifre", login_btn: "Giriş Yap", login_demo: "Demo giriş",
     header_sub: "Pilot Fabrika · Vardiya Panosu", header_today: "bugünkü örme çıktısı", logout: "Çıkış",
     cat_ozet: "Özet", cat_uretim: "Üretim", cat_kalite: "Kalite", cat_ticari: "Ticari", cat_ekip: "Ekip",
-    tab_uretim: "Örme", tab_boyahane: "Boyahane", tab_stok: "Stok",
+    tab_uretim: "Örme", tab_boyahane: "Boyahane", tab_stok: "Stok", tab_fire: "Fire/Kalite Hatası",
     tab_kalite: "Kalite Kartı", tab_barkod: "Barkod", tab_urunler: "Ürünler",
     tab_siparis: "Sipariş", tab_maliyet: "Maliyet", tab_tahmin: "Tahmin",
     tab_vardiya: "Vardiya",
@@ -89,7 +89,7 @@ const translations = {
     login_title: "Pilot Factory Login", login_user: "Username", login_pass: "Password", login_btn: "Sign In", login_demo: "Demo login",
     header_sub: "Pilot Factory · Shift Board", header_today: "today's knitting output", logout: "Log Out",
     cat_ozet: "Overview", cat_uretim: "Production", cat_kalite: "Quality", cat_ticari: "Commercial", cat_ekip: "Team",
-    tab_uretim: "Knitting", tab_boyahane: "Dyehouse", tab_stok: "Stock",
+    tab_uretim: "Knitting", tab_boyahane: "Dyehouse", tab_stok: "Stock", tab_fire: "Waste/Defects",
     tab_kalite: "Quality Card", tab_barkod: "Barcode", tab_urunler: "Products",
     tab_siparis: "Orders", tab_maliyet: "Cost", tab_tahmin: "Forecast",
     tab_vardiya: "Shift Log",
@@ -101,7 +101,7 @@ const translations = {
 };
 const TAB_CATEGORIES = [
   { key: "ozet", labelKey: "cat_ozet", tabs: ["ozet"] },
-  { key: "uretim_cat", labelKey: "cat_uretim", tabs: ["uretim", "boyahane", "stok"] },
+  { key: "uretim_cat", labelKey: "cat_uretim", tabs: ["uretim", "boyahane", "stok", "fire"] },
   { key: "kalite_cat", labelKey: "cat_kalite", tabs: ["kalite", "barkod", "urunler"] },
   { key: "ticari_cat", labelKey: "cat_ticari", tabs: ["siparis", "maliyet", "tahmin"] },
   { key: "ekip_cat", labelKey: "cat_ekip", tabs: ["vardiya"] },
@@ -165,6 +165,12 @@ const productionTrend = [
 const fiberConsumptionHistory = [
   { label: "Mar", value: 1850 }, { label: "Nis", value: 2010 }, { label: "May", value: 1940 },
   { label: "Haz", value: 2280 }, { label: "Tem", value: 2460 },
+];
+const WASTE_TYPES = ["En Farkı", "Ton Farkı", "Delik/Kopuk İplik", "Leke", "Desen Hatası", "Diğer"];
+const initialWasteLogs = [
+  { id: 1, machine: "Örgü-3", lot: "HK-3391", type: "En Farkı", qty: 12, unit: "m", operator: "Mehmet Y.", time: "08:40" },
+  { id: 2, machine: "Örgü-1", lot: "HK-3388", type: "Ton Farkı", qty: 6, unit: "m", operator: "Ali K.", time: "10:15" },
+  { id: 3, machine: "Örgü-5", lot: "HK-3401", type: "Delik/Kopuk İplik", qty: 3, unit: "m", operator: "Mehmet Y.", time: "13:02" },
 ];
 const initialShiftNotes = [
   { id: 1, person: "Ahmet (Gündüz Vardiyası)", time: "29 Tem, 16:00", text: "Raşel 3'te iplik kopması oldu, 20 dk duraksama yaşandı, telafi edildi. Elyaf stoku (Elastan) azalıyor, ikmal gerekebilir." },
@@ -415,6 +421,8 @@ function NavIcon({ tabKey, active, onBadge, color }) {
     React.createElement("path", { d: "M12 3v6l5 8a4 4 0 0 1-3.5 6h-3A4 4 0 0 1 7 17l5-8z", strokeLinecap: "round", strokeLinejoin: "round" }));
   if (tabKey === "stok") return React.createElement("svg", { style: s, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: sw },
     React.createElement("path", { d: "M3 8l9-5 9 5-9 5-9-5z", strokeLinejoin: "round" }), React.createElement("path", { d: "M3 8v9l9 5 9-5V8", strokeLinejoin: "round" }), React.createElement("path", { d: "M12 13v9" }));
+  if (tabKey === "fire") return React.createElement("svg", { style: s, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: sw },
+    React.createElement("path", { d: "M12 3l8 15H4L12 3z", strokeLinejoin: "round" }), React.createElement("path", { d: "M12 10v4", strokeLinecap: "round" }), React.createElement("circle", { cx: 12, cy: 17, r: 0.6, fill: c }));
   if (tabKey === "urunler") return React.createElement("svg", { style: s, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: sw },
     React.createElement("rect", { x: 3, y: 3, width: 8, height: 8, rx: 1.5 }), React.createElement("rect", { x: 13, y: 3, width: 8, height: 8, rx: 1.5 }), React.createElement("rect", { x: 3, y: 13, width: 8, height: 8, rx: 1.5 }), React.createElement("rect", { x: 13, y: 13, width: 8, height: 8, rx: 1.5 }));
   if (tabKey === "maliyet") return React.createElement("svg", { style: s, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: sw },
@@ -572,6 +580,30 @@ function MainBoard({ onLogout, lang, setLang }) {
   const [richQrOpen, setRichQrOpen] = useState(false);
   const [richForm, setRichForm] = useState({ kod: "", kalite: "", en: "", gsm: "", komp: "", renk: "", desen: "" });
   const [richQrGenerated, setRichQrGenerated] = useState(null);
+  const [wasteLogs, setWasteLogs] = useState(initialWasteLogs);
+  const [wasteForm, setWasteForm] = useState({ machine: machines[0].name, lot: "", type: WASTE_TYPES[0], qty: "", operator: "" });
+  const [lotOneriHedef, setLotOneriHedef] = useState("");
+  const [lotOneriSonuc, setLotOneriSonuc] = useState(null);
+
+  const addWasteLog = () => {
+    if (!wasteForm.qty || !wasteForm.lot) return;
+    setWasteLogs(prev => [{ id: Date.now(), machine: wasteForm.machine, lot: wasteForm.lot.toUpperCase(), type: wasteForm.type, qty: Number(wasteForm.qty), unit: "m", operator: wasteForm.operator || "—", time: new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) }, ...prev]);
+    setWasteForm({ ...wasteForm, lot: "", qty: "", operator: "" });
+  };
+
+  // En az fireyi verecek lot öneri motoru: hedef miktara en yakın (ve yeterli) lotu,
+  // en az artık/fire bırakacak şekilde önerir — büyük fazla stoktan kesmek yerine.
+  const suggestBestLot = (hedefMiktar) => {
+    const target = Number(hedefMiktar);
+    if (!target || target <= 0) return null;
+    const candidates = [...stockLayers.hamKumas, ...stockLayers.mamul].filter(s => s.qty >= target);
+    if (candidates.length === 0) {
+      const closest = [...stockLayers.hamKumas, ...stockLayers.mamul].sort((a, b) => b.qty - a.qty)[0];
+      return closest ? { lot: closest, yeterli: false, fire: 0 } : null;
+    }
+    const best = candidates.reduce((min, s) => (s.qty - target) < (min.qty - target) ? s : min, candidates[0]);
+    return { lot: best, yeterli: true, fire: Math.round((best.qty - target) * 10) / 10 };
+  };
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState("");
   const videoRef = useRef(null);
@@ -934,6 +966,74 @@ function MainBoard({ onLogout, lang, setLang }) {
             )
           );
         })
+      ),
+      tab === "fire" && React.createElement("div", null,
+        (() => {
+          const totalFire = wasteLogs.reduce((s, w) => s + w.qty, 0);
+          const byType = {};
+          wasteLogs.forEach(w => { byType[w.type] = (byType[w.type] || 0) + w.qty; });
+          const topType = Object.entries(byType).sort((a, b) => b[1] - a[1])[0];
+          return React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 } },
+            React.createElement(StatCard, { label: "Toplam Fire (Bugün)", value: totalFire + " m", sub: wasteLogs.length + " kayıt", color: COLORS.alert, icon: "fire" }),
+            React.createElement(StatCard, { label: "En Sık Hata Türü", value: topType ? topType[0] : "—", sub: topType ? topType[1] + " m" : "", color: COLORS.thread, icon: "fire" })
+          );
+        })(),
+
+        React.createElement(SectionLabel, null, "En Az Fireli Lot Öner"),
+        React.createElement(Card, null,
+          React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginBottom: 10, lineHeight: 1.4 } }, "Sipariş için gereken metrajı gir — sistem stoktaki lotlardan, en az artık/fire bırakacak olanı önersin (büyük fazla stoktan kesmek yerine ihtiyaca en yakın lotu seçer)."),
+          React.createElement("div", { style: { display: "flex", gap: 8 } },
+            React.createElement("input", { value: lotOneriHedef, onChange: e => setLotOneriHedef(e.target.value), placeholder: "Gereken metraj (örn. 180)", type: "number", style: { flex: 1, padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13.5, outline: "none", fontFamily: fontMono } }),
+            React.createElement("button", { onClick: () => setLotOneriSonuc(suggestBestLot(lotOneriHedef)), style: { background: COLORS.accent, color: "#fff", border: "none", borderRadius: 8, padding: "0 16px", fontWeight: 700, fontSize: 13, cursor: "pointer" } }, "Öner")
+          ),
+          lotOneriSonuc && (lotOneriSonuc.lot ? React.createElement("div", { style: { marginTop: 12, background: COLORS.panelAlt, borderRadius: 8, padding: 10 } },
+            React.createElement("div", { style: { fontSize: 12.5, fontWeight: 700 } }, lotOneriSonuc.lot.name + " · Lot " + lotOneriSonuc.lot.lot),
+            React.createElement("div", { style: { fontSize: 11.5, color: COLORS.inkDim, marginTop: 4 } }, "Stokta: " + lotOneriSonuc.lot.qty + " " + lotOneriSonuc.lot.unit),
+            lotOneriSonuc.yeterli
+              ? React.createElement("div", { style: { fontSize: 11.5, color: COLORS.ok, marginTop: 4, fontWeight: 600 } }, "Bu lot kullanılırsa yalnızca ~" + lotOneriSonuc.fire + " m artık kalır (en düşük fire seçeneği).")
+              : React.createElement("div", { style: { fontSize: 11.5, color: COLORS.alert, marginTop: 4, fontWeight: 600 } }, "Uyarı: hiçbir tek lot tek başına yeterli değil, en büyüğü öneriliyor — birleştirme gerekebilir.")
+          ) : React.createElement("div", { style: { marginTop: 10, fontSize: 12, color: COLORS.inkDim } }, "Uygun lot bulunamadı."))
+        ),
+
+        React.createElement(SectionLabel, null, "Fire / Kalite Hatası Kaydet"),
+        React.createElement(Card, null,
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 } },
+              React.createElement("div", null,
+                React.createElement("label", { style: { fontSize: 11.5, color: COLORS.inkDim, fontWeight: 600, display: "block", marginBottom: 4 } }, "Makine/Hat"),
+                React.createElement("select", { value: wasteForm.machine, onChange: e => setWasteForm({ ...wasteForm, machine: e.target.value }), style: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13, outline: "none" } },
+                  machines.map(m => React.createElement("option", { key: m.name, value: m.name }, m.name))
+                )
+              ),
+              React.createElement("div", null,
+                React.createElement("label", { style: { fontSize: 11.5, color: COLORS.inkDim, fontWeight: 600, display: "block", marginBottom: 4 } }, "Hata Türü"),
+                React.createElement("select", { value: wasteForm.type, onChange: e => setWasteForm({ ...wasteForm, type: e.target.value }), style: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13, outline: "none" } },
+                  WASTE_TYPES.map(w => React.createElement("option", { key: w, value: w }, w))
+                )
+              )
+            ),
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 } },
+              React.createElement(FormField, { label: "Lot Kodu", value: wasteForm.lot, onChange: e => setWasteForm({ ...wasteForm, lot: e.target.value }), placeholder: "HK-3391" }),
+              React.createElement(FormField, { label: "Miktar (m)", type: "number", value: wasteForm.qty, onChange: e => setWasteForm({ ...wasteForm, qty: e.target.value }), placeholder: "5" }),
+              React.createElement(FormField, { label: "Operatör", value: wasteForm.operator, onChange: e => setWasteForm({ ...wasteForm, operator: e.target.value }), placeholder: "Ad Soyad" })
+            ),
+            React.createElement("button", { onClick: addWasteLog, style: { background: COLORS.alert, color: "#fff", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 700, fontSize: 13, cursor: "pointer", marginTop: 2 } }, "+ Fire Kaydı Ekle")
+          )
+        ),
+
+        React.createElement(SectionLabel, { count: wasteLogs.length }, "Fire Kayıtları (Lot / Operatör Bazlı)"),
+        React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+          wasteLogs.map(w => React.createElement(Card, { key: w.id, accentLeft: COLORS.alert },
+            React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start" } },
+              React.createElement("div", null,
+                React.createElement("div", { style: { fontSize: 13, fontWeight: 700 } }, w.type),
+                React.createElement("div", { style: { fontFamily: fontMono, fontSize: 11, color: COLORS.inkDim, marginTop: 2 } }, w.machine + " · Lot " + w.lot),
+                React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginTop: 2 } }, "Operatör: " + w.operator + " · " + w.time)
+              ),
+              React.createElement("div", { style: { fontFamily: fontMono, fontSize: 15, fontWeight: 700, color: COLORS.alert } }, w.qty + " " + w.unit)
+            )
+          ))
+        )
       ),
       tab === "stok" && React.createElement("div", null,
         React.createElement("div", { style: { display: "flex", gap: 6, marginBottom: 4 } },
