@@ -59,6 +59,9 @@ function parseExcelFile(file, onParsed, onError) {
 function qrUrl(code, size) {
   return "https://api.qrserver.com/v1/create-qr-code/?size=" + (size || 120) + "x" + (size || 120) + "&data=" + encodeURIComponent("FILARIS:" + code);
 }
+function richQrUrl(payloadObj, size) {
+  return "https://api.qrserver.com/v1/create-qr-code/?size=" + (size || 160) + "x" + (size || 160) + "&data=" + encodeURIComponent(JSON.stringify(payloadObj));
+}
 
 const CONTENT_TRANSLATIONS = {
   "Ecru Dantel 140cm": "Ecru Lace 140cm", "Beyaz Dantel 90cm": "White Lace 90cm",
@@ -566,6 +569,9 @@ function MainBoard({ onLogout, lang, setLang }) {
   const fileInputRef = useRef(null);
   const [barkodResult, setBarkodResult] = useState(null);
   const [barkodManual, setBarkodManual] = useState("");
+  const [richQrOpen, setRichQrOpen] = useState(false);
+  const [richForm, setRichForm] = useState({ kod: "", kalite: "", en: "", gsm: "", komp: "", renk: "", desen: "" });
+  const [richQrGenerated, setRichQrGenerated] = useState(null);
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState("");
   const videoRef = useRef(null);
@@ -591,9 +597,25 @@ function MainBoard({ onLogout, lang, setLang }) {
   }, [stockLayers]);
 
   const handleManualScan = () => {
-    const code = barkodManual.trim().toUpperCase();
-    const found = lookupByCode[code];
-    setBarkodResult(found ? { code, ...found } : { code, notFound: true });
+    const parsed = parseScannedCode(barkodManual.trim());
+    setBarkodResult(parsed);
+  };
+
+  // ---- Hibrit çözümleyici: sistem hem eski düz lot barkodlarını hem yeni zengin QR'ları
+  // aynı akışta, kabın şeklini alan "su gibi akışkan" bir mantıkla okuyabiliyor ----
+  const parseScannedCode = (raw) => {
+    const code = (raw || "").trim();
+    // 1) Önce yeni nesil zengin QR (JSON, kompozisyon/en/gramaj/renk/desen içeren) mi diye dene
+    try {
+      const obj = JSON.parse(code);
+      if (obj && obj.t === "FTQR") {
+        return { code: obj.kod, richQR: true, ...obj };
+      }
+    } catch (e) { /* JSON değil — eski tip düz barkod olabilir, aşağı devam et */ }
+    // 2) Değilse eski tip düz lot/barkod kodu olarak dene (fabrikada hâlihazırda kullanılan sistem)
+    const upper = code.toUpperCase();
+    const found = lookupByCode[upper];
+    return found ? { code: upper, richQR: false, ...found } : { code: upper, richQR: false, notFound: true };
   };
 
   const startCameraScan = async () => {
@@ -633,8 +655,7 @@ function MainBoard({ onLogout, lang, setLang }) {
       const result = window.jsQR(imageData.data, imageData.width, imageData.height);
       if (result) {
         const raw = result.data.replace("FILARIS:", "");
-        const found = lookupByCode[raw];
-        setBarkodResult(found ? { code: raw, ...found } : { code: raw, notFound: true });
+        setBarkodResult(parseScannedCode(raw));
         stopCameraScan();
         return;
       }
@@ -1399,9 +1420,23 @@ function MainBoard({ onLogout, lang, setLang }) {
           React.createElement("input", { value: barkodManual, onChange: e => setBarkodManual(e.target.value), onKeyDown: e => e.key === "Enter" && handleManualScan(), placeholder: "Lot kodu gir (örn. L-2211)", style: { flex: 1, padding: "11px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13.5, outline: "none", fontFamily: fontMono } }),
           React.createElement("button", { onClick: handleManualScan, style: { background: COLORS.panelAlt, border: "1px solid " + COLORS.border, borderRadius: 8, padding: "0 16px", fontWeight: 700, fontSize: 13, cursor: "pointer", color: COLORS.ink } }, "Ara")
         ),
-        barkodResult && React.createElement(Card, { accentLeft: barkodResult.notFound ? COLORS.alert : COLORS.ok },
+        barkodResult && React.createElement(Card, { accentLeft: barkodResult.notFound ? COLORS.alert : (barkodResult.richQR ? COLORS.dye : COLORS.ok) },
           barkodResult.notFound
             ? React.createElement("div", { style: { fontSize: 13, color: COLORS.alert, fontWeight: 600 } }, '"' + barkodResult.code + '" koduyla eşleşen kayıt bulunamadı.')
+            : barkodResult.richQR
+            ? React.createElement(React.Fragment, null,
+                React.createElement(Pill, { label: "✨ Yeni Nesil Zengin QR", color: COLORS.dye }),
+                React.createElement("div", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 15, marginTop: 8 } }, barkodResult.kalite || barkodResult.code),
+                React.createElement("div", { style: { fontFamily: fontMono, fontSize: 11.5, color: COLORS.inkDim, marginTop: 2 } }, "Kod: " + barkodResult.code),
+                React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginTop: 10, fontSize: 12 } },
+                  barkodResult.en && React.createElement("div", null, React.createElement("span", { style: { color: COLORS.inkDim } }, "En: "), React.createElement("b", null, barkodResult.en)),
+                  barkodResult.gsm && React.createElement("div", null, React.createElement("span", { style: { color: COLORS.inkDim } }, "Gramaj: "), React.createElement("b", null, barkodResult.gsm + " gsm")),
+                  barkodResult.renk && React.createElement("div", null, React.createElement("span", { style: { color: COLORS.inkDim } }, "Renk: "), React.createElement("b", null, barkodResult.renk)),
+                  barkodResult.desen && React.createElement("div", null, React.createElement("span", { style: { color: COLORS.inkDim } }, "Desen: "), React.createElement("b", null, barkodResult.desen))
+                ),
+                barkodResult.komp && React.createElement("div", { style: { marginTop: 8, fontSize: 12, color: COLORS.inkDim } }, "Kompozisyon: " + barkodResult.komp),
+                React.createElement("div", { style: { marginTop: 10, fontSize: 10.5, color: COLORS.inkDim, background: COLORS.panelAlt, borderRadius: 6, padding: "6px 8px", lineHeight: 1.4 } }, "Bu kod sistemin kendi ürettiği zengin QR formatında — eski barkodlarla aynı arama kutusundan, aynı anda okunabiliyor (hibrit çözümleyici).")
+              )
             : React.createElement(React.Fragment, null,
                 React.createElement(Pill, { label: barkodResult.type, color: COLORS.dye }),
                 React.createElement("div", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 15, marginTop: 8 } }, barkodResult.item.name),
@@ -1411,10 +1446,50 @@ function MainBoard({ onLogout, lang, setLang }) {
                 barkodResult.item.recipe && React.createElement("div", { style: { fontSize: 11.5, color: COLORS.inkDim, marginTop: 4 } }, "Reçete: " + barkodResult.item.recipe)
               )
         ),
+
+        React.createElement(SectionLabel, null, "Zengin QR Oluştur (Yeni Nesil Etiketleme)"),
+        !richQrOpen
+          ? React.createElement("button", { onClick: () => setRichQrOpen(true), style: { width: "100%", background: "transparent", border: "1px dashed " + COLORS.dye, color: COLORS.dye, borderRadius: 10, padding: "12px 0", fontWeight: 700, fontSize: 13, cursor: "pointer" } }, "✨ Yeni Ürün için Zengin QR Etiketi Oluştur")
+          : React.createElement(Card, null,
+              React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+                React.createElement(FormField, { label: "Ürün Kodu", value: richForm.kod, onChange: e => setRichForm({ ...richForm, kod: e.target.value }), placeholder: "X 1234" }),
+                React.createElement(FormField, { label: "Kalite Tanımı", value: richForm.kalite, onChange: e => setRichForm({ ...richForm, kalite: e.target.value }), placeholder: "Jakar Kalitesi" }),
+                React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 } },
+                  React.createElement(FormField, { label: "En", value: richForm.en, onChange: e => setRichForm({ ...richForm, en: e.target.value }), placeholder: "150cm" }),
+                  React.createElement(FormField, { label: "Gramaj (gsm)", value: richForm.gsm, onChange: e => setRichForm({ ...richForm, gsm: e.target.value }), placeholder: "160" })
+                ),
+                React.createElement(FormField, { label: "Kompozisyon", value: richForm.komp, onChange: e => setRichForm({ ...richForm, komp: e.target.value }), placeholder: "%65 Pamuk %20 Polyester %15 Rayon" }),
+                React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 } },
+                  React.createElement(FormField, { label: "Renk", value: richForm.renk, onChange: e => setRichForm({ ...richForm, renk: e.target.value }), placeholder: "Ekru" }),
+                  React.createElement(FormField, { label: "Desen", value: richForm.desen, onChange: e => setRichForm({ ...richForm, desen: e.target.value }), placeholder: "Baklava" })
+                ),
+                React.createElement("div", { style: { display: "flex", gap: 8, marginTop: 4 } },
+                  React.createElement("button", {
+                    onClick: () => {
+                      if (!richForm.kod) return;
+                      const payload = { t: "FTQR", kod: richForm.kod, kalite: richForm.kalite, en: richForm.en, gsm: richForm.gsm, komp: richForm.komp, renk: richForm.renk, desen: richForm.desen };
+                      setRichQrGenerated(payload);
+                    },
+                    style: { flex: 1, background: COLORS.dye, color: "#fff", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 700, fontSize: 13, cursor: "pointer" }
+                  }, "QR Oluştur"),
+                  React.createElement("button", { onClick: () => { setRichQrOpen(false); setRichQrGenerated(null); }, style: { border: "1px solid " + COLORS.border, background: "transparent", borderRadius: 8, padding: "10px 14px", fontWeight: 600, fontSize: 13, cursor: "pointer", color: COLORS.inkDim } }, "Kapat")
+                ),
+                richQrGenerated && React.createElement("div", { style: { marginTop: 10, display: "flex", gap: 12, alignItems: "center", background: COLORS.panelAlt, borderRadius: 8, padding: 10 } },
+                  React.createElement("img", { src: richQrUrl(richQrGenerated, 100), alt: "QR", width: 90, height: 90, style: { borderRadius: 6, flexShrink: 0 } }),
+                  React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, lineHeight: 1.5 } },
+                    "Bu QR artık üründe kullanılabilir. Taratıldığında sistem otomatik olarak bunu yeni nesil zengin etiket olarak tanıyacak.",
+                    React.createElement("div", { style: { marginTop: 6 } },
+                      React.createElement("button", { onClick: () => { setBarkodManual(JSON.stringify(richQrGenerated)); setBarkodResult(parseScannedCode(JSON.stringify(richQrGenerated))); }, style: { fontSize: 11, fontWeight: 700, color: COLORS.dye, background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" } }, "Şimdi bu QR'ı tarat →")
+                    )
+                  )
+                )
+              )
+            ),
+
         React.createElement(SectionLabel, null, "Tüm Lotlar (QR ile)"),
         React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
           [...stockLayers.iplik, ...stockLayers.hamKumas, ...stockLayers.mamul].map(s =>
-            React.createElement("button", { key: s.lot, onClick: () => { setBarkodManual(s.lot); setBarkodResult({ code: s.lot, ...lookupByCode[s.lot] }); }, style: { display: "flex", alignItems: "center", gap: 10, background: COLORS.panel, border: "1px solid " + COLORS.border, borderRadius: 8, padding: 8, cursor: "pointer", textAlign: "left" } },
+            React.createElement("button", { key: s.lot, onClick: () => { setBarkodManual(s.lot); setBarkodResult(parseScannedCode(s.lot)); }, style: { display: "flex", alignItems: "center", gap: 10, background: COLORS.panel, border: "1px solid " + COLORS.border, borderRadius: 8, padding: 8, cursor: "pointer", textAlign: "left" } },
               React.createElement("img", { src: qrUrl(s.lot, 44), alt: "", width: 40, height: 40, style: { borderRadius: 4, flexShrink: 0 } }),
               React.createElement("div", { style: { minWidth: 0 } },
                 React.createElement("div", { style: { fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, s.name),
