@@ -26,6 +26,25 @@
 <script type="text/babel" data-type="module">
 const { useState, useMemo, useRef, useEffect } = React;
 
+// Demo için basit kalıcılık: gerçek bir veritabanı değil, ama sayfa yenilendiğinde
+// veya telefon kapatılıp açıldığında veri kaybolmasın diye tarayıcının localStorage'ında saklıyoruz.
+function usePersistentState(key, initialValue) {
+  const storageKey = "filaris_" + key;
+  const [state, setState] = useState(() => {
+    try {
+      const saved = window.localStorage.getItem(storageKey);
+      return saved !== null ? JSON.parse(saved) : initialValue;
+    } catch (e) {
+      return initialValue;
+    }
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem(storageKey, JSON.stringify(state)); } catch (e) {}
+  }, [state]);
+  return [state, setState];
+}
+
+
 const EXCEL_TEMPLATE_COLUMNS = ["Sipariş No", "Müşteri", "Ürün", "Miktar (m)", "Teslim Tarihi", "İrsaliye No", "Fatura No", "GSM (g/m²)", "Genişlik (cm)", "İçerik"];
 
 function downloadExcelTemplate() {
@@ -105,6 +124,13 @@ const TAB_CATEGORIES = [
   { key: "kalite_cat", labelKey: "cat_kalite", tabs: ["kalite", "barkod", "urunler"] },
   { key: "ticari_cat", labelKey: "cat_ticari", tabs: ["siparis", "maliyet", "tahmin"] },
   { key: "ekip_cat", labelKey: "cat_ekip", tabs: ["vardiya"] },
+];
+// Rol bazlı görünüm: her rol yalnızca kendi işiyle ilgili kategorileri görür.
+// Gerçek yetkilendirme değil (backend yok) ama arayüz düzeyinde tam işlevsel bir ayrım.
+const ROLES = [
+  { key: "yonetici", labelTr: "Yönetici", labelEn: "Manager", cats: ["ozet", "uretim_cat", "kalite_cat", "ticari_cat", "ekip_cat"] },
+  { key: "formen", labelTr: "Formen / Saha", labelEn: "Foreman / Floor", cats: ["ozet", "uretim_cat", "kalite_cat", "ekip_cat"] },
+  { key: "muhasebe", labelTr: "Muhasebe / Sevkiyat", labelEn: "Accounting / Shipping", cats: ["ozet", "kalite_cat", "ticari_cat"] },
 ];
 const COLORS = {
   base: "#F3F3F3", panel: "#FFFFFF", panelAlt: "#F7F7F8",
@@ -376,9 +402,10 @@ function LoginScreen({ onLogin, lang, setLang }) {
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
   const [error, setError] = useState("");
+  const [role, setRole] = useState("yonetici");
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (user.trim().toLowerCase() === "pilot" && pass === "1234") { setError(""); onLogin(); }
+    if (user.trim().toLowerCase() === "pilot" && pass === "1234") { setError(""); onLogin(role); }
     else setError("Kullanıcı adı veya şifre hatalı");
   };
   return React.createElement("div", { style: { minHeight: "100vh", background: COLORS.base, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: fontBody, padding: 24 } },
@@ -395,6 +422,18 @@ function LoginScreen({ onLogin, lang, setLang }) {
         React.createElement("div", null,
           React.createElement("label", { style: { fontSize: 12, fontWeight: 600, color: COLORS.inkDim, display: "block", marginBottom: 4 } }, t("login_pass")),
           React.createElement("input", { type: "password", value: pass, onChange: (e) => setPass(e.target.value), placeholder: "••••", style: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 14, fontFamily: fontBody, boxSizing: "border-box", outline: "none" } })
+        ),
+        React.createElement("div", null,
+          React.createElement("label", { style: { fontSize: 12, fontWeight: 600, color: COLORS.inkDim, display: "block", marginBottom: 4 } }, lang === "en" ? "Role" : "Rol"),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 6 } },
+            ROLES.map(r => React.createElement("button", {
+              key: r.key, type: "button", onClick: () => setRole(r.key),
+              style: { display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid " + (role === r.key ? COLORS.accent : COLORS.border), background: role === r.key ? COLORS.accent + "12" : "transparent", cursor: "pointer", fontFamily: fontBody }
+            },
+              React.createElement("span", { style: { fontSize: 13, fontWeight: role === r.key ? 700 : 500, color: role === r.key ? COLORS.accent : COLORS.ink } }, lang === "en" ? r.labelEn : r.labelTr),
+              role === r.key && React.createElement("span", { style: { color: COLORS.accent, fontWeight: 700, fontSize: 13 } }, "✓")
+            ))
+          )
         ),
         error && React.createElement("div", { style: { color: COLORS.alert, fontSize: 12, fontWeight: 600 } }, error),
         React.createElement("button", { type: "submit", style: { marginTop: 6, background: COLORS.accent, color: "#fff", border: "none", borderRadius: 8, padding: "11px 0", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: fontBody } }, t("login_btn"))
@@ -497,16 +536,19 @@ function TrendChart({ data, color, height }) {
     )
   );
 }
-function Sidebar({ tab, setTab, t, lang, setLang, onLogout }) {
+function Sidebar({ tab, setTab, t, lang, setLang, onLogout, categories, roleLabel }) {
   return React.createElement("div", { style: { width: 232, flexShrink: 0, minHeight: "100vh", background: COLORS.panel, borderRight: "1px solid " + COLORS.border, display: "flex", flexDirection: "column", padding: "20px 14px", position: "sticky", top: 0 } },
-    React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10, padding: "0 8px", marginBottom: 28 } },
+    React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10, padding: "0 8px", marginBottom: 6 } },
       React.createElement(LogoMark, { size: 34 }),
       React.createElement("div", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 15, lineHeight: 1.15 } },
         "Filaris ", React.createElement("span", { style: { color: COLORS.accent } }, "Texnet")
       )
     ),
+    roleLabel && React.createElement("div", { style: { padding: "0 8px", marginBottom: 22 } },
+      React.createElement("span", { style: { fontSize: 10.5, fontWeight: 700, color: COLORS.accent, background: COLORS.accent + "14", borderRadius: 999, padding: "3px 9px" } }, roleLabel)
+    ),
     React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 3, flex: 1 } },
-      TAB_CATEGORIES.map(cat => {
+      categories.map(cat => {
         const active = cat.tabs.includes(tab);
         const iconKey = cat.tabs[0];
         return React.createElement("button", { key: cat.key, onClick: () => setTab(cat.tabs[0]), style: { display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 10, border: "none", background: active ? COLORS.accent + "12" : "transparent", cursor: "pointer", textAlign: "left" } },
@@ -545,9 +587,11 @@ function SectionLabel({ children, count }) {
   );
 }
 
-function MainBoard({ onLogout, lang, setLang }) {
+function MainBoard({ onLogout, lang, setLang, userRole }) {
   const t = (k) => translations[lang][k] || translations.tr[k] || k;
   const tc = (s) => lang === "en" ? (CONTENT_TRANSLATIONS[s] || s) : s;
+  const currentRole = ROLES.find(r => r.key === userRole) || ROLES[0];
+  const visibleCategories = TAB_CATEGORIES.filter(c => currentRole.cats.includes(c.key));
   const [isDesktop, setIsDesktop] = useState(typeof window !== "undefined" && window.matchMedia("(min-width: 900px)").matches);
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 900px)");
@@ -562,10 +606,16 @@ function MainBoard({ onLogout, lang, setLang }) {
   const [certNumber, setCertNumber] = useState("GRS-2026-00417");
   const [tcNumber, setTcNumber] = useState("TC-88213");
   const [notifOpen, setNotifOpen] = useState(false);
-  const [companyInfo, setCompanyInfo] = useState(initialCompanyInfo);
+  const [companyInfo, setCompanyInfo] = usePersistentState("companyInfo", initialCompanyInfo);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [orders, setOrders] = useState(initialOrders);
-  const [stockLayers, setStockLayers] = useState(initialStockLayers);
+  const [toast, setToast] = useState(null);
+  const showToast = (msg) => {
+    setToast(msg);
+    window.clearTimeout(window.__filarisToastTimer);
+    window.__filarisToastTimer = window.setTimeout(() => setToast(null), 2200);
+  };
+  const [orders, setOrders] = usePersistentState("orders", initialOrders);
+  const [stockLayers, setStockLayers] = usePersistentState("stockLayers", initialStockLayers);
   const [newOrderOpen, setNewOrderOpen] = useState(false);
   const [newStockOpen, setNewStockOpen] = useState(false);
   const [importPreview, setImportPreview] = useState(null);
@@ -573,7 +623,7 @@ function MainBoard({ onLogout, lang, setLang }) {
   const stockFileInputRef = useRef(null);
   const [stockImportPreview, setStockImportPreview] = useState(null);
   const [stockImportError, setStockImportError] = useState("");
-  const [shiftNotes, setShiftNotes] = useState(initialShiftNotes);
+  const [shiftNotes, setShiftNotes] = usePersistentState("shiftNotes", initialShiftNotes);
   const [ocrBusy, setOcrBusy] = useState(false);
   const [ocrRawText, setOcrRawText] = useState("");
   const [ocrResult, setOcrResult] = useState(null);
@@ -585,14 +635,15 @@ function MainBoard({ onLogout, lang, setLang }) {
   const [richQrOpen, setRichQrOpen] = useState(false);
   const [richForm, setRichForm] = useState({ kod: "", kalite: "", en: "", gsm: "", komp: "", renk: "", desen: "" });
   const [richQrGenerated, setRichQrGenerated] = useState(null);
-  const [wasteLogs, setWasteLogs] = useState(initialWasteLogs);
-  const [machineLogs, setMachineLogs] = useState(initialMachineLogs);
+  const [wasteLogs, setWasteLogs] = usePersistentState("wasteLogs", initialWasteLogs);
+  const [machineLogs, setMachineLogs] = usePersistentState("machineLogs", initialMachineLogs);
   const [mLogForm, setMLogForm] = useState({ machine: machines[0].name, type: MACHINE_LOG_TYPES[0], hours: "", reason: "" });
 
   const addMachineLog = () => {
     if (!mLogForm.hours) return;
     setMachineLogs(prev => [{ id: Date.now(), machine: mLogForm.machine, type: mLogForm.type, hours: Number(mLogForm.hours), reason: mLogForm.reason || "—", time: new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) }, ...prev]);
     setMLogForm({ ...mLogForm, hours: "", reason: "" });
+    showToast("✓ Duruş/arıza kaydı eklendi");
   };
 
   // OEE hesabı: Kullanılabilirlik (çalışma / planlı+duruş+arıza) × Performans (gerçek hız / ideal hız) × Kalite (1 - fire oranı)
@@ -619,6 +670,7 @@ function MainBoard({ onLogout, lang, setLang }) {
     if (!wasteForm.qty || !wasteForm.lot) return;
     setWasteLogs(prev => [{ id: Date.now(), machine: wasteForm.machine, lot: wasteForm.lot.toUpperCase(), type: wasteForm.type, qty: Number(wasteForm.qty), unit: "m", operator: wasteForm.operator || "—", time: new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) }, ...prev]);
     setWasteForm({ ...wasteForm, lot: "", qty: "", operator: "" });
+    showToast("✓ Fire kaydı eklendi");
   };
 
   // En az fireyi verecek lot öneri motoru: hedef miktara en yakın (ve yeterli) lotu,
@@ -837,7 +889,7 @@ function MainBoard({ onLogout, lang, setLang }) {
   };
 
   return React.createElement("div", { style: { display: isDesktop ? "flex" : "block", minHeight: "100vh", background: COLORS.base } },
-    isDesktop && React.createElement(Sidebar, { tab, setTab, t, lang, setLang, onLogout }),
+    isDesktop && React.createElement(Sidebar, { tab, setTab, t, lang, setLang, onLogout, categories: visibleCategories, roleLabel: lang === "en" ? currentRole.labelEn : currentRole.labelTr }),
     React.createElement("div", { style: { flex: 1, minHeight: "100vh", background: COLORS.base, color: COLORS.ink, fontFamily: fontBody, paddingBottom: isDesktop ? 24 : 76 } },
     React.createElement("div", { style: { background: COLORS.panel, borderBottom: "1px solid " + COLORS.border, padding: "14px 20px", position: "sticky", top: 0, zIndex: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" } },
       React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } },
@@ -847,7 +899,10 @@ function MainBoard({ onLogout, lang, setLang }) {
             React.createElement("div", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 16, lineHeight: 1.1 } },
               "Filaris ", React.createElement("span", { style: { color: COLORS.accent } }, "Texnet")
             ),
-            React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim } }, t("header_sub"))
+            React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, display: "flex", alignItems: "center", gap: 6 } },
+              t("header_sub"),
+              !isDesktop && React.createElement("span", { style: { fontSize: 9.5, fontWeight: 700, color: COLORS.accent, background: COLORS.accent + "14", borderRadius: 999, padding: "2px 7px" } }, lang === "en" ? currentRole.labelEn : currentRole.labelTr)
+            )
           )
         ),
         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
@@ -908,8 +963,8 @@ function MainBoard({ onLogout, lang, setLang }) {
             React.createElement(StatCard, { label: t("stat_today_prod"), value: totalToday.toLocaleString("tr-TR") + " m", sub: runningCount + " " + t("running"), color: COLORS.ok, icon: "uretim", onClick: () => setTab("uretim") }),
             React.createElement(StatCard, { label: t("stat_machine"), value: runningCount + "/" + machines.length, sub: idleCount + " " + t("idle"), color: COLORS.accent, icon: "uretim", onClick: () => setTab("uretim") }),
             React.createElement(StatCard, { label: t("stat_critical_stock"), value: criticalTotal, sub: criticalTotal > 0 ? "acil ikmal gerekiyor" : "sorun yok", color: criticalTotal > 0 ? COLORS.alert : COLORS.ok, icon: "stok", onClick: () => setTab("stok") }),
-            React.createElement(StatCard, { label: t("stat_boyahane"), value: activeVats + "/" + dyeVats.length, sub: "kazan aktif", color: COLORS.dye, icon: "boyahane", onClick: () => setTab("boyahane") }),
-            React.createElement(StatCard, { label: t("stat_pending_order"), value: pendingOrders.length, sub: "sevke hazır değil", color: COLORS.thread, icon: "siparis", onClick: () => setTab("siparis") }),
+            React.createElement(StatCard, { label: t("stat_boyahane"), value: activeVats + "/" + dyeVats.length, sub: "kazan aktif", color: COLORS.accent, icon: "boyahane", onClick: () => setTab("boyahane") }),
+            React.createElement(StatCard, { label: t("stat_pending_order"), value: pendingOrders.length, sub: "sevke hazır değil", color: pendingOrders.length > 0 ? COLORS.alert : COLORS.ok, icon: "siparis", onClick: () => setTab("siparis") }),
             React.createElement(StatCard, { label: t("stat_cert"), value: certOkGlobal ? "✓ Tamam" : "✕ Eksik", sub: "SP-1042 · RCS/GRS", color: certOkGlobal ? COLORS.ok : COLORS.alert, icon: "kalite", onClick: () => setTab("kalite") })
           ),
           React.createElement(SectionLabel, null, t("sec_trend")),
@@ -1016,7 +1071,7 @@ function MainBoard({ onLogout, lang, setLang }) {
               React.createElement(FormField, { label: "Süre (saat)", type: "number", step: "0.1", value: mLogForm.hours, onChange: e => setMLogForm({ ...mLogForm, hours: e.target.value }), placeholder: "0.5" }),
               React.createElement(FormField, { label: "Neden", value: mLogForm.reason, onChange: e => setMLogForm({ ...mLogForm, reason: e.target.value }), placeholder: "İğne kırığı, bakım, vb." })
             ),
-            React.createElement("button", { onClick: addMachineLog, style: { background: COLORS.dye, color: "#fff", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 700, fontSize: 13, cursor: "pointer", marginTop: 2 } }, "+ Kaydet")
+            React.createElement("button", { onClick: addMachineLog, style: { background: COLORS.accent, color: "#fff", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 700, fontSize: 13, cursor: "pointer", marginTop: 2 } }, "+ Kaydet")
           )
         ),
 
@@ -1220,6 +1275,7 @@ function MainBoard({ onLogout, lang, setLang }) {
           }
           setStockLayers(prev => ({ ...prev, [stockTab]: [...prev[stockTab], newItem] }));
           setNewStockOpen(false);
+          showToast("✓ Stok kalemi eklendi");
         }
       },
         React.createElement(FormField, { name: "name", label: "Kalem Adı", placeholder: "örn. Polyester İplik (Ecru)", required: true }),
@@ -1665,7 +1721,7 @@ function MainBoard({ onLogout, lang, setLang }) {
                       const payload = { t: "FTQR", kod: richForm.kod, kalite: richForm.kalite, en: richForm.en, gsm: richForm.gsm, komp: richForm.komp, renk: richForm.renk, desen: richForm.desen };
                       setRichQrGenerated(payload);
                     },
-                    style: { flex: 1, background: COLORS.dye, color: "#fff", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 700, fontSize: 13, cursor: "pointer" }
+                    style: { flex: 1, background: COLORS.accent, color: "#fff", border: "none", borderRadius: 8, padding: "10px 0", fontWeight: 700, fontSize: 13, cursor: "pointer" }
                   }, "QR Oluştur"),
                   React.createElement("button", { onClick: () => { setRichQrOpen(false); setRichQrGenerated(null); }, style: { border: "1px solid " + COLORS.border, background: "transparent", borderRadius: 8, padding: "10px 14px", fontWeight: 600, fontSize: 13, cursor: "pointer", color: COLORS.inkDim } }, "Kapat")
                 ),
@@ -1695,7 +1751,7 @@ function MainBoard({ onLogout, lang, setLang }) {
         ),
         React.createElement(SectionLabel, null, "İrsaliye / Fatura Tara (OCR)"),
         React.createElement("div", { style: { fontSize: 10.5, color: COLORS.inkDim, marginBottom: 10, lineHeight: 1.4 } }, "Kağıt belgenin fotoğrafını çek, sistem yazıyı otomatik okumaya çalışsın. OCR hiçbir zaman %100 doğru olmaz — kaydetmeden önce alanları mutlaka kontrol et."),
-        React.createElement("label", { style: { display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", background: ocrBusy ? COLORS.panelAlt : COLORS.dye, color: "#fff", border: "none", borderRadius: 10, padding: "14px 0", fontWeight: 700, fontSize: 13.5, cursor: ocrBusy ? "default" : "pointer" } },
+        React.createElement("label", { style: { display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", background: ocrBusy ? COLORS.panelAlt : COLORS.accent, color: "#fff", border: "none", borderRadius: 10, padding: "14px 0", fontWeight: 700, fontSize: 13.5, cursor: ocrBusy ? "default" : "pointer" } },
           ocrBusy ? "🔎 Okunuyor, lütfen bekle..." : "📄 Belge Fotoğrafı Çek / Yükle",
           React.createElement("input", { type: "file", accept: "image/*", capture: "environment", onChange: handleDocumentPhoto, disabled: ocrBusy, style: { display: "none" } })
         ),
@@ -1768,6 +1824,7 @@ function MainBoard({ onLogout, lang, setLang }) {
             if (!f.text.value.trim()) return;
             setShiftNotes(prev => [{ id: Date.now(), person: f.person.value || "İsimsiz", time: new Date().toLocaleString("tr-TR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }), text: f.text.value }, ...prev]);
             f.reset();
+            showToast("✓ Not eklendi");
           },
           style: { display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }
         },
@@ -1802,6 +1859,7 @@ function MainBoard({ onLogout, lang, setLang }) {
           phone: f.phone.value || companyInfo.phone,
         });
         setSettingsOpen(false);
+        showToast("✓ Firma bilgileri kaydedildi");
       }
     },
       React.createElement(FormField, { name: "name", label: "Firma Adı", defaultValue: companyInfo.name, required: true }),
@@ -1809,14 +1867,25 @@ function MainBoard({ onLogout, lang, setLang }) {
       React.createElement(FormField, { name: "taxOffice", label: "Vergi Dairesi", defaultValue: companyInfo.taxOffice }),
       React.createElement(FormField, { name: "taxNo", label: "Vergi Numarası", defaultValue: companyInfo.taxNo }),
       React.createElement(FormField, { name: "phone", label: "Telefon", defaultValue: companyInfo.phone }),
-      React.createElement("div", { style: { fontSize: 10.5, color: COLORS.inkDim, lineHeight: 1.4 } }, "Bu bilgiler irsaliye ve raporlarda kullanılır. Şu an bu oturumda saklanır — gerçek sisteme geçince kalıcı olacak.")
+      React.createElement("div", { style: { fontSize: 10.5, color: COLORS.inkDim, lineHeight: 1.4 } }, "Bu bilgiler ve tüm sistem verileri (sipariş, stok, fire, OEE kayıtları) bu cihazda saklanır — sayfa yenilense veya uygulama kapatılıp açılsa bile kaybolmaz. Gerçek sisteme geçince bulut veritabanına taşınacak."),
+      React.createElement("button", {
+        type: "button",
+        onClick: () => {
+          if (window.confirm("Tüm demo verileri (siparişler, stok, fire/OEE kayıtları, ayarlar) sıfırlanıp başlangıç durumuna dönecek. Emin misin?")) {
+            ["companyInfo", "orders", "stockLayers", "shiftNotes", "wasteLogs", "machineLogs", "lang"].forEach(k => window.localStorage.removeItem("filaris_" + k));
+            window.location.reload();
+          }
+        },
+        style: { border: "1px solid " + COLORS.alert, background: "transparent", color: COLORS.alert, borderRadius: 8, padding: "10px 0", fontWeight: 700, fontSize: 12.5, cursor: "pointer", marginTop: 4 }
+      }, "🗑 Demo Verilerini Sıfırla (Başlangıç Durumuna Dön)")
     ),
+    toast && React.createElement("div", { style: { position: "fixed", bottom: isDesktop ? 24 : 84, left: "50%", transform: "translateX(-50%)", background: COLORS.ink, color: "#fff", padding: "10px 18px", borderRadius: 999, fontSize: 12.5, fontWeight: 600, boxShadow: "0 8px 24px rgba(0,0,0,0.25)", zIndex: 100, whiteSpace: "nowrap" } }, toast),
     !isDesktop && React.createElement("div", { style: { position: "fixed", bottom: 0, left: 0, right: 0, background: COLORS.panel, borderTop: "1px solid " + COLORS.border, display: "flex", padding: "8px 4px calc(8px + env(safe-area-inset-bottom))", boxShadow: "0 -4px 16px rgba(15,20,25,0.06)", zIndex: 20 } },
-      TAB_CATEGORIES.map((cat) => {
+      visibleCategories.map((cat) => {
         const active = cat.tabs.includes(tab);
         const iconKey = cat.tabs[0];
-        return React.createElement("button", { key: cat.key, onClick: () => setTab(cat.tabs[0]), style: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "2px 2px", border: "none", background: "transparent", cursor: "pointer" } },
-          React.createElement("div", { style: { width: 40, height: 32, borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", background: active ? COLORS.accent : "transparent", boxShadow: active ? "0 4px 10px rgba(14,165,183,0.35)" : "none" } },
+        return React.createElement("button", { key: cat.key, onClick: () => setTab(cat.tabs[0]), style: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "6px 2px", minHeight: 58, border: "none", background: "transparent", cursor: "pointer" } },
+          React.createElement("div", { style: { width: 46, height: 38, borderRadius: 17, display: "flex", alignItems: "center", justifyContent: "center", background: active ? COLORS.accent : "transparent", boxShadow: active ? "0 4px 10px rgba(14,165,183,0.35)" : "none" } },
             React.createElement(NavIcon, { tabKey: iconKey, active, onBadge: active })
           ),
           React.createElement("span", { style: { fontSize: 10.5, fontWeight: active ? 700 : 500, color: active ? COLORS.accent : COLORS.inkDim, fontFamily: fontBody, textAlign: "center", lineHeight: 1.1 } }, t(cat.labelKey))
@@ -1829,9 +1898,10 @@ function MainBoard({ onLogout, lang, setLang }) {
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
-  const [lang, setLang] = useState("tr");
-  if (!loggedIn) return React.createElement(LoginScreen, { onLogin: () => setLoggedIn(true), lang, setLang });
-  return React.createElement(MainBoard, { onLogout: () => setLoggedIn(false), lang, setLang });
+  const [lang, setLang] = usePersistentState("lang", "tr");
+  const [userRole, setUserRole] = useState("yonetici");
+  if (!loggedIn) return React.createElement(LoginScreen, { onLogin: (role) => { setUserRole(role); setLoggedIn(true); }, lang, setLang });
+  return React.createElement(MainBoard, { onLogout: () => setLoggedIn(false), lang, setLang, userRole });
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
