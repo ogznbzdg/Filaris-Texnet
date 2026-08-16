@@ -132,12 +132,22 @@ const ROLES = [
   { key: "formen", labelTr: "Formen / Saha", labelEn: "Foreman / Floor", cats: ["ozet", "uretim_cat", "kalite_cat", "ekip_cat"] },
   { key: "muhasebe", labelTr: "Muhasebe / Sevkiyat", labelEn: "Accounting / Shipping", cats: ["ozet", "kalite_cat", "ticari_cat"] },
 ];
-const COLORS = {
+const LIGHT_PALETTE = {
   base: "#F3F3F3", panel: "#FFFFFF", panelAlt: "#F7F7F8",
   border: "#E1E1E4", ink: "#1B1B1F", inkDim: "#6B6B72",
-  accent: "#0EA5B7", ok: "#0E8A3E", alert: "#C4291C", dye: "#7F5FD1",
+  accent: "#0EA5B7", ok: "#0E8A3E", alert: "#C4291C", dye: "#7F5FD1", thread: "#B8860B",
   shadow: "0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04)",
 };
+const DARK_PALETTE = {
+  base: "#121316", panel: "#1C1E22", panelAlt: "#26282D",
+  border: "#34373D", ink: "#F2F2F3", inkDim: "#9AA0A6",
+  accent: "#2DD4E0", ok: "#22C55E", alert: "#F0554A", dye: "#A78BFA", thread: "#F2B94B",
+  shadow: "0 1px 2px rgba(0,0,0,0.3), 0 4px 14px rgba(0,0,0,0.35)",
+};
+// COLORS bilerek mutable bırakılıyor: App'in en tepesinde tema değiştiğinde
+// Object.assign ile içeriği güncelleniyor, tüm bileşenler COLORS.x'i her render'da
+// property erişimiyle okuduğu için tek bir yerden tüm uygulama tema değiştiriyor.
+const COLORS = { ...LIGHT_PALETTE };
 const fontDisplay = "'Segoe UI Variable','Segoe UI','Inter',sans-serif";
 const fontBody = "'Segoe UI','Inter',sans-serif";
 const fontMono = "'Cascadia Mono','JetBrains Mono',monospace";
@@ -401,6 +411,12 @@ function LaceSwatch({ color }) {
     ))
   );
 }
+function ThemeToggle({ dark, setDark }) {
+  return React.createElement("button", {
+    onClick: () => setDark(!dark), title: dark ? "Açık temaya geç" : "Koyu temaya geç",
+    style: { display: "flex", alignItems: "center", justifyContent: "center", width: 34, height: 34, borderRadius: 6, border: "1px solid " + COLORS.border, background: "transparent", cursor: "pointer", fontSize: 15, color: COLORS.inkDim }
+  }, dark ? "☀️" : "🌙");
+}
 function LangToggle({ lang, setLang, dark }) {
   const active = { background: COLORS.accent, color: "#fff" };
   const inactive = { background: "transparent", color: dark ? "#fff" : COLORS.inkDim };
@@ -409,7 +425,7 @@ function LangToggle({ lang, setLang, dark }) {
     React.createElement("button", { onClick: () => setLang("en"), style: { ...(lang === "en" ? active : inactive), border: "none", padding: "5px 9px", fontSize: 11, fontWeight: 700, cursor: "pointer" } }, "EN")
   );
 }
-function LoginScreen({ onLogin, lang, setLang }) {
+function LoginScreen({ onLogin, lang, setLang, dark, setDark }) {
   const t = (k) => translations[lang][k] || translations.tr[k] || k;
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
@@ -422,18 +438,18 @@ function LoginScreen({ onLogin, lang, setLang }) {
   };
   return React.createElement("div", { style: { minHeight: "100vh", background: COLORS.base, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: fontBody, padding: 24 } },
     React.createElement("div", { style: { width: "100%", maxWidth: 340, background: COLORS.panel, border: "1px solid " + COLORS.border, borderRadius: 12, padding: "28px 24px", boxShadow: COLORS.shadow, position: "relative" } },
-      React.createElement("div", { style: { position: "absolute", top: 14, right: 14 } }, React.createElement(LangToggle, { lang, setLang })),
+      React.createElement("div", { style: { position: "absolute", top: 14, right: 14, display: "flex", gap: 6 } }, React.createElement(ThemeToggle, { dark, setDark }), React.createElement(LangToggle, { lang, setLang })),
       React.createElement("div", { style: { display: "flex", justifyContent: "center", marginBottom: 16 } }, React.createElement(LogoMark, { size: 48 })),
       React.createElement("div", { style: { textAlign: "center", fontFamily: fontDisplay, fontWeight: 700, fontSize: 18, marginBottom: 2 } }, "Filaris ", React.createElement("span", { style: { color: COLORS.accent } }, "Texnet")),
       React.createElement("div", { style: { textAlign: "center", fontSize: 12, color: COLORS.inkDim, marginBottom: 22 } }, t("login_title")),
       React.createElement("form", { onSubmit: handleSubmit, style: { display: "flex", flexDirection: "column", gap: 12 } },
         React.createElement("div", null,
           React.createElement("label", { style: { fontSize: 12, fontWeight: 600, color: COLORS.inkDim, display: "block", marginBottom: 4 } }, t("login_user")),
-          React.createElement("input", { value: user, onChange: (e) => setUser(e.target.value), placeholder: "pilot", style: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 14, fontFamily: fontBody, boxSizing: "border-box", outline: "none" } })
+          React.createElement("input", { value: user, onChange: (e) => setUser(e.target.value), placeholder: "pilot", style: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 14, fontFamily: fontBody, boxSizing: "border-box", outline: "none" , background: COLORS.panel, color: COLORS.ink } })
         ),
         React.createElement("div", null,
           React.createElement("label", { style: { fontSize: 12, fontWeight: 600, color: COLORS.inkDim, display: "block", marginBottom: 4 } }, t("login_pass")),
-          React.createElement("input", { type: "password", value: pass, onChange: (e) => setPass(e.target.value), placeholder: "••••", style: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 14, fontFamily: fontBody, boxSizing: "border-box", outline: "none" } })
+          React.createElement("input", { type: "password", value: pass, onChange: (e) => setPass(e.target.value), placeholder: "••••", style: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 14, fontFamily: fontBody, boxSizing: "border-box", outline: "none" , background: COLORS.panel, color: COLORS.ink } })
         ),
         React.createElement("div", null,
           React.createElement("label", { style: { fontSize: 12, fontWeight: 600, color: COLORS.inkDim, display: "block", marginBottom: 4 } }, lang === "en" ? "Role" : "Rol"),
@@ -524,7 +540,7 @@ function FormModal({ title, onClose, onSubmit, children, submitLabel }) {
 function FormField({ label, ...props }) {
   return React.createElement("div", null,
     React.createElement("label", { style: { fontSize: 11.5, color: COLORS.inkDim, fontWeight: 600, display: "block", marginBottom: 4 } }, label),
-    React.createElement("input", { ...props, style: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13.5, boxSizing: "border-box", outline: "none", fontFamily: "'Inter',sans-serif" } })
+    React.createElement("input", { ...props, style: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13.5, boxSizing: "border-box", outline: "none", fontFamily: "'Inter',sans-serif", background: COLORS.panel, color: COLORS.ink } })
   );
 }
 function TrendChart({ data, color, height }) {
@@ -563,7 +579,7 @@ function TraceabilityChain({ steps }) {
     React.createElement("div", { style: { fontSize: 9.5, color: COLORS.inkDim, marginTop: 10, lineHeight: 1.4 } }, "Şu an aşama tamamlanma durumu stok/sipariş verisinden çıkarılıyor. Gerçek sistemde her geçiş, o an otomatik zaman damgasıyla kaydedilecek.")
   );
 }
-function Sidebar({ tab, setTab, t, lang, setLang, onLogout, categories, roleLabel }) {
+function Sidebar({ tab, setTab, t, lang, setLang, onLogout, categories, roleLabel, dark, setDark }) {
   return React.createElement("div", { style: { width: 232, flexShrink: 0, minHeight: "100vh", background: COLORS.panel, borderRight: "1px solid " + COLORS.border, display: "flex", flexDirection: "column", padding: "20px 14px", position: "sticky", top: 0 } },
     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10, padding: "0 8px", marginBottom: 6 } },
       React.createElement(LogoMark, { size: 34 }),
@@ -587,7 +603,7 @@ function Sidebar({ tab, setTab, t, lang, setLang, onLogout, categories, roleLabe
       })
     ),
     React.createElement("div", { style: { borderTop: "1px solid " + COLORS.border, paddingTop: 14, display: "flex", flexDirection: "column", gap: 10 } },
-      React.createElement(LangToggle, { lang, setLang }),
+      React.createElement("div", { style: { display: "flex", gap: 6 } }, React.createElement(ThemeToggle, { dark, setDark }), React.createElement(LangToggle, { lang, setLang })),
       React.createElement("button", { onClick: onLogout, style: { border: "1px solid " + COLORS.border, background: "transparent", borderRadius: 8, padding: "9px 0", fontSize: 12.5, color: COLORS.inkDim, cursor: "pointer", fontFamily: fontBody, fontWeight: 600 } }, t("logout"))
     )
   );
@@ -614,7 +630,7 @@ function SectionLabel({ children, count }) {
   );
 }
 
-function MainBoard({ onLogout, lang, setLang, userRole }) {
+function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
   const t = (k) => translations[lang][k] || translations.tr[k] || k;
   const tc = (s) => lang === "en" ? (CONTENT_TRANSLATIONS[s] || s) : s;
   const currentRole = ROLES.find(r => r.key === userRole) || ROLES[0];
@@ -636,6 +652,14 @@ function MainBoard({ onLogout, lang, setLang, userRole }) {
   const [companyInfo, setCompanyInfo] = usePersistentState("companyInfo", initialCompanyInfo);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [toast, setToast] = useState(null);
+  const [isOnline, setIsOnline] = useState(typeof navigator !== "undefined" ? navigator.onLine : true);
+  useEffect(() => {
+    const goOnline = () => { setIsOnline(true); showToast("✓ Bağlantı geri geldi"); };
+    const goOffline = () => setIsOnline(false);
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+    return () => { window.removeEventListener("online", goOnline); window.removeEventListener("offline", goOffline); };
+  }, []);
   const showToast = (msg) => {
     setToast(msg);
     window.clearTimeout(window.__filarisToastTimer);
@@ -929,7 +953,7 @@ function MainBoard({ onLogout, lang, setLang, userRole }) {
   };
 
   return React.createElement("div", { style: { display: isDesktop ? "flex" : "block", minHeight: "100vh", background: COLORS.base } },
-    isDesktop && React.createElement(Sidebar, { tab, setTab, t, lang, setLang, onLogout, categories: visibleCategories, roleLabel: lang === "en" ? currentRole.labelEn : currentRole.labelTr }),
+    isDesktop && React.createElement(Sidebar, { tab, setTab, t, lang, setLang, onLogout, categories: visibleCategories, roleLabel: lang === "en" ? currentRole.labelEn : currentRole.labelTr, dark, setDark }),
     React.createElement("div", { style: { flex: 1, minHeight: "100vh", background: COLORS.base, color: COLORS.ink, fontFamily: fontBody, paddingBottom: isDesktop ? 24 : 76 } },
     React.createElement("div", { style: { background: COLORS.panel, borderBottom: "1px solid " + COLORS.border, padding: "14px 20px", position: "sticky", top: 0, zIndex: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" } },
       React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } },
@@ -941,11 +965,13 @@ function MainBoard({ onLogout, lang, setLang, userRole }) {
             ),
             React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, display: "flex", alignItems: "center", gap: 6 } },
               t("header_sub"),
-              !isDesktop && React.createElement("span", { style: { fontSize: 9.5, fontWeight: 700, color: COLORS.accent, background: COLORS.accent + "14", borderRadius: 999, padding: "2px 7px" } }, lang === "en" ? currentRole.labelEn : currentRole.labelTr)
+              !isDesktop && React.createElement("span", { style: { fontSize: 9.5, fontWeight: 700, color: COLORS.accent, background: COLORS.accent + "14", borderRadius: 999, padding: "2px 7px" } }, lang === "en" ? currentRole.labelEn : currentRole.labelTr),
+              !isOnline && React.createElement("span", { style: { fontSize: 9.5, fontWeight: 700, color: "#fff", background: COLORS.alert, borderRadius: 999, padding: "2px 7px", display: "flex", alignItems: "center", gap: 3 } }, "● " + (lang === "en" ? "Offline" : "Çevrimdışı"))
             )
           )
         ),
         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+          !isDesktop && React.createElement(ThemeToggle, { dark, setDark }),
           React.createElement(LangToggle, { lang, setLang }),
           React.createElement("div", { style: { textAlign: "right" } },
             React.createElement("div", { style: { fontFamily: fontMono, fontSize: 22, fontWeight: 700, color: COLORS.accent, lineHeight: 1 } }, totalToday.toLocaleString("tr-TR"), React.createElement("span", { style: { fontSize: 12, color: COLORS.inkDim, marginLeft: 4 } }, "m")),
@@ -989,6 +1015,9 @@ function MainBoard({ onLogout, lang, setLang, userRole }) {
           }, t("tab_" + tk)))
         );
       })()
+    ),
+    !isOnline && React.createElement("div", { style: { background: COLORS.alert, color: "#fff", padding: "8px 16px", fontSize: 12, fontWeight: 600, textAlign: "center" } },
+      "📡 " + (lang === "en" ? "Offline — your changes are safely saved on this device." : "Çevrimdışısın — değişikliklerin bu cihazda güvenle kaydediliyor.")
     ),
     React.createElement("div", { style: { padding: isDesktop ? "24px 32px" : "18px 16px", maxWidth: isDesktop ? 1000 : 720, margin: "0 auto" } },
       tab === "ozet" && (() => {
@@ -1125,13 +1154,13 @@ function MainBoard({ onLogout, lang, setLang, userRole }) {
             React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 } },
               React.createElement("div", null,
                 React.createElement("label", { style: { fontSize: 11.5, color: COLORS.inkDim, fontWeight: 600, display: "block", marginBottom: 4 } }, "Makine"),
-                React.createElement("select", { value: mLogForm.machine, onChange: e => setMLogForm({ ...mLogForm, machine: e.target.value }), style: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13, outline: "none" } },
+                React.createElement("select", { value: mLogForm.machine, onChange: e => setMLogForm({ ...mLogForm, machine: e.target.value }), style: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13, outline: "none", background: COLORS.panel, color: COLORS.ink } },
                   machines.map(m => React.createElement("option", { key: m.name, value: m.name }, m.name))
                 )
               ),
               React.createElement("div", null,
                 React.createElement("label", { style: { fontSize: 11.5, color: COLORS.inkDim, fontWeight: 600, display: "block", marginBottom: 4 } }, "Tür"),
-                React.createElement("select", { value: mLogForm.type, onChange: e => setMLogForm({ ...mLogForm, type: e.target.value }), style: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13, outline: "none" } },
+                React.createElement("select", { value: mLogForm.type, onChange: e => setMLogForm({ ...mLogForm, type: e.target.value }), style: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13, outline: "none", background: COLORS.panel, color: COLORS.ink } },
                   MACHINE_LOG_TYPES.map(w => React.createElement("option", { key: w, value: w }, w))
                 )
               )
@@ -1205,7 +1234,7 @@ function MainBoard({ onLogout, lang, setLang, userRole }) {
         React.createElement(Card, null,
           React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginBottom: 10, lineHeight: 1.4 } }, "Sipariş için gereken metrajı gir — sistem stoktaki lotlardan, en az artık/fire bırakacak olanı önersin (büyük fazla stoktan kesmek yerine ihtiyaca en yakın lotu seçer)."),
           React.createElement("div", { style: { display: "flex", gap: 8 } },
-            React.createElement("input", { value: lotOneriHedef, onChange: e => setLotOneriHedef(e.target.value), placeholder: "Gereken metraj (örn. 180)", type: "number", style: { flex: 1, padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13.5, outline: "none", fontFamily: fontMono } }),
+            React.createElement("input", { value: lotOneriHedef, onChange: e => setLotOneriHedef(e.target.value), placeholder: "Gereken metraj (örn. 180)", type: "number", style: { flex: 1, padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13.5, outline: "none", fontFamily: fontMono , background: COLORS.panel, color: COLORS.ink } }),
             React.createElement("button", { onClick: () => setLotOneriSonuc(suggestBestLot(lotOneriHedef)), style: { background: COLORS.accent, color: "#fff", border: "none", borderRadius: 8, padding: "0 16px", fontWeight: 700, fontSize: 13, cursor: "pointer" } }, "Öner")
           ),
           lotOneriSonuc && (lotOneriSonuc.lot ? React.createElement("div", { style: { marginTop: 12, background: COLORS.panelAlt, borderRadius: 8, padding: 10 } },
@@ -1223,13 +1252,13 @@ function MainBoard({ onLogout, lang, setLang, userRole }) {
             React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 } },
               React.createElement("div", null,
                 React.createElement("label", { style: { fontSize: 11.5, color: COLORS.inkDim, fontWeight: 600, display: "block", marginBottom: 4 } }, "Makine/Hat"),
-                React.createElement("select", { value: wasteForm.machine, onChange: e => setWasteForm({ ...wasteForm, machine: e.target.value }), style: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13, outline: "none" } },
+                React.createElement("select", { value: wasteForm.machine, onChange: e => setWasteForm({ ...wasteForm, machine: e.target.value }), style: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13, outline: "none", background: COLORS.panel, color: COLORS.ink } },
                   machines.map(m => React.createElement("option", { key: m.name, value: m.name }, m.name))
                 )
               ),
               React.createElement("div", null,
                 React.createElement("label", { style: { fontSize: 11.5, color: COLORS.inkDim, fontWeight: 600, display: "block", marginBottom: 4 } }, "Hata Türü"),
-                React.createElement("select", { value: wasteForm.type, onChange: e => setWasteForm({ ...wasteForm, type: e.target.value }), style: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13, outline: "none" } },
+                React.createElement("select", { value: wasteForm.type, onChange: e => setWasteForm({ ...wasteForm, type: e.target.value }), style: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13, outline: "none", background: COLORS.panel, color: COLORS.ink } },
                   WASTE_TYPES.map(w => React.createElement("option", { key: w, value: w }, w))
                 )
               )
@@ -1661,11 +1690,11 @@ function MainBoard({ onLogout, lang, setLang, userRole }) {
                 React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
                   React.createElement("div", null,
                     React.createElement("label", { style: { fontSize: 11, color: COLORS.inkDim, fontWeight: 600 } }, "Sertifika No (RCS/GRS)"),
-                    React.createElement("input", { value: certNumber, onChange: (e) => setCertNumber(e.target.value), placeholder: "Boş bırakıp kilidi test edin", style: { width: "100%", marginTop: 3, padding: "8px 10px", borderRadius: 6, border: "1px solid " + COLORS.border, fontSize: 12.5, fontFamily: fontMono, boxSizing: "border-box", outline: "none" } })
+                    React.createElement("input", { value: certNumber, onChange: (e) => setCertNumber(e.target.value), placeholder: "Boş bırakıp kilidi test edin", style: { width: "100%", marginTop: 3, padding: "8px 10px", borderRadius: 6, border: "1px solid " + COLORS.border, fontSize: 12.5, fontFamily: fontMono, boxSizing: "border-box", outline: "none" , background: COLORS.panel, color: COLORS.ink } })
                   ),
                   React.createElement("div", null,
                     React.createElement("label", { style: { fontSize: 11, color: COLORS.inkDim, fontWeight: 600 } }, "TC (Transaction Certificate) No"),
-                    React.createElement("input", { value: tcNumber, onChange: (e) => setTcNumber(e.target.value), placeholder: "Boş bırakıp kilidi test edin", style: { width: "100%", marginTop: 3, padding: "8px 10px", borderRadius: 6, border: "1px solid " + COLORS.border, fontSize: 12.5, fontFamily: fontMono, boxSizing: "border-box", outline: "none" } })
+                    React.createElement("input", { value: tcNumber, onChange: (e) => setTcNumber(e.target.value), placeholder: "Boş bırakıp kilidi test edin", style: { width: "100%", marginTop: 3, padding: "8px 10px", borderRadius: 6, border: "1px solid " + COLORS.border, fontSize: 12.5, fontFamily: fontMono, boxSizing: "border-box", outline: "none" , background: COLORS.panel, color: COLORS.ink } })
                   )
                 ),
                 React.createElement("div", { style: { marginTop: 12 } }, certOk ? React.createElement(Pill, { label: "✓ Doğrulandı — Sevkiyata Açık", color: COLORS.ok }) : React.createElement(Pill, { label: "✕ Sertifika Eksik — Sevkiyat Kilitli", color: COLORS.alert })),
@@ -1746,7 +1775,7 @@ function MainBoard({ onLogout, lang, setLang, userRole }) {
           ),
         scanError && React.createElement("div", { style: { marginTop: 10, fontSize: 11.5, color: COLORS.alert, background: "#FDECEA", padding: "10px 12px", borderRadius: 8, lineHeight: 1.4 } }, scanError),
         React.createElement("div", { style: { display: "flex", gap: 8, marginTop: 14 } },
-          React.createElement("input", { value: barkodManual, onChange: e => setBarkodManual(e.target.value), onKeyDown: e => e.key === "Enter" && handleManualScan(), placeholder: "Lot kodu gir (örn. L-2211)", style: { flex: 1, padding: "11px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13.5, outline: "none", fontFamily: fontMono } }),
+          React.createElement("input", { value: barkodManual, onChange: e => setBarkodManual(e.target.value), onKeyDown: e => e.key === "Enter" && handleManualScan(), placeholder: "Lot kodu gir (örn. L-2211)", style: { flex: 1, padding: "11px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13.5, outline: "none", fontFamily: fontMono , background: COLORS.panel, color: COLORS.ink } }),
           React.createElement("button", { onClick: handleManualScan, style: { background: COLORS.panelAlt, border: "1px solid " + COLORS.border, borderRadius: 8, padding: "0 16px", fontWeight: 700, fontSize: 13, cursor: "pointer", color: COLORS.ink } }, "Ara")
         ),
         barkodResult && React.createElement(Card, { accentLeft: barkodResult.notFound ? COLORS.alert : (barkodResult.richQR ? COLORS.dye : COLORS.ok) },
@@ -1843,7 +1872,7 @@ function MainBoard({ onLogout, lang, setLang, userRole }) {
         React.createElement("div", { style: { fontSize: 10.5, color: COLORS.inkDim, marginBottom: 10, lineHeight: 1.4 } }, "Kağıt belgenin fotoğrafını çek, sistem yazıyı otomatik okumaya çalışsın. OCR hiçbir zaman %100 doğru olmaz — kaydetmeden önce alanları mutlaka kontrol et."),
         React.createElement("label", { style: { display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", background: ocrBusy ? COLORS.panelAlt : COLORS.accent, color: "#fff", border: "none", borderRadius: 10, padding: "14px 0", fontWeight: 700, fontSize: 13.5, cursor: ocrBusy ? "default" : "pointer" } },
           ocrBusy ? "🔎 Okunuyor, lütfen bekle..." : "📄 Belge Fotoğrafı Çek / Yükle",
-          React.createElement("input", { type: "file", accept: "image/*", capture: "environment", onChange: handleDocumentPhoto, disabled: ocrBusy, style: { display: "none" } })
+          React.createElement("input", { type: "file", accept: "image/*", capture: "environment", onChange: handleDocumentPhoto, disabled: ocrBusy, style: { display: "none" , background: COLORS.panel, color: COLORS.ink } })
         ),
         ocrError && React.createElement("div", { style: { marginTop: 10, fontSize: 11.5, color: COLORS.alert, background: "#FDECEA", padding: "10px 12px", borderRadius: 8, lineHeight: 1.4 } }, ocrError),
         ocrResult && React.createElement(Card, { accentLeft: COLORS.dye },
@@ -1851,25 +1880,25 @@ function MainBoard({ onLogout, lang, setLang, userRole }) {
           React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
             React.createElement("div", null,
               React.createElement("label", { style: { fontSize: 11, color: COLORS.inkDim, fontWeight: 600 } }, "İrsaliye No"),
-              React.createElement("input", { value: ocrResult.irsaliyeNo, onChange: e => setOcrResult({ ...ocrResult, irsaliyeNo: e.target.value }), style: { width: "100%", marginTop: 3, padding: "8px 10px", borderRadius: 6, border: "1px solid " + COLORS.border, fontSize: 12.5, boxSizing: "border-box" } })
+              React.createElement("input", { value: ocrResult.irsaliyeNo, onChange: e => setOcrResult({ ...ocrResult, irsaliyeNo: e.target.value }), style: { width: "100%", marginTop: 3, padding: "8px 10px", borderRadius: 6, border: "1px solid " + COLORS.border, fontSize: 12.5, boxSizing: "border-box", background: COLORS.panel, color: COLORS.ink } })
             ),
             React.createElement("div", null,
               React.createElement("label", { style: { fontSize: 11, color: COLORS.inkDim, fontWeight: 600 } }, "Fatura No"),
-              React.createElement("input", { value: ocrResult.faturaNo, onChange: e => setOcrResult({ ...ocrResult, faturaNo: e.target.value }), style: { width: "100%", marginTop: 3, padding: "8px 10px", borderRadius: 6, border: "1px solid " + COLORS.border, fontSize: 12.5, boxSizing: "border-box" } })
+              React.createElement("input", { value: ocrResult.faturaNo, onChange: e => setOcrResult({ ...ocrResult, faturaNo: e.target.value }), style: { width: "100%", marginTop: 3, padding: "8px 10px", borderRadius: 6, border: "1px solid " + COLORS.border, fontSize: 12.5, boxSizing: "border-box", background: COLORS.panel, color: COLORS.ink } })
             ),
             React.createElement("div", { style: { display: "flex", gap: 8 } },
               React.createElement("div", { style: { flex: 1 } },
                 React.createElement("label", { style: { fontSize: 11, color: COLORS.inkDim, fontWeight: 600 } }, "Tarih"),
-                React.createElement("input", { value: ocrResult.tarih, onChange: e => setOcrResult({ ...ocrResult, tarih: e.target.value }), style: { width: "100%", marginTop: 3, padding: "8px 10px", borderRadius: 6, border: "1px solid " + COLORS.border, fontSize: 12.5, boxSizing: "border-box" } })
+                React.createElement("input", { value: ocrResult.tarih, onChange: e => setOcrResult({ ...ocrResult, tarih: e.target.value }), style: { width: "100%", marginTop: 3, padding: "8px 10px", borderRadius: 6, border: "1px solid " + COLORS.border, fontSize: 12.5, boxSizing: "border-box", background: COLORS.panel, color: COLORS.ink } })
               ),
               React.createElement("div", { style: { flex: 1 } },
                 React.createElement("label", { style: { fontSize: 11, color: COLORS.inkDim, fontWeight: 600 } }, "Tutar"),
-                React.createElement("input", { value: ocrResult.tutar, onChange: e => setOcrResult({ ...ocrResult, tutar: e.target.value }), style: { width: "100%", marginTop: 3, padding: "8px 10px", borderRadius: 6, border: "1px solid " + COLORS.border, fontSize: 12.5, boxSizing: "border-box" } })
+                React.createElement("input", { value: ocrResult.tutar, onChange: e => setOcrResult({ ...ocrResult, tutar: e.target.value }), style: { width: "100%", marginTop: 3, padding: "8px 10px", borderRadius: 6, border: "1px solid " + COLORS.border, fontSize: 12.5, boxSizing: "border-box", background: COLORS.panel, color: COLORS.ink } })
               )
             ),
             React.createElement("div", null,
               React.createElement("label", { style: { fontSize: 11, color: COLORS.inkDim, fontWeight: 600 } }, "Hangi siparişe bağlansın?"),
-              React.createElement("select", { value: ocrAttachOrder, onChange: e => setOcrAttachOrder(e.target.value), style: { width: "100%", marginTop: 3, padding: "8px 10px", borderRadius: 6, border: "1px solid " + COLORS.border, fontSize: 12.5, boxSizing: "border-box" } },
+              React.createElement("select", { value: ocrAttachOrder, onChange: e => setOcrAttachOrder(e.target.value), style: { width: "100%", marginTop: 3, padding: "8px 10px", borderRadius: 6, border: "1px solid " + COLORS.border, fontSize: 12.5, boxSizing: "border-box" , background: COLORS.panel, color: COLORS.ink } },
                 React.createElement("option", { value: "" }, "— Sipariş Seç —"),
                 orders.map(o => React.createElement("option", { key: o.id, value: o.id }, o.id + " · " + o.customer))
               )
@@ -1918,7 +1947,7 @@ function MainBoard({ onLogout, lang, setLang, userRole }) {
           },
           style: { display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }
         },
-          React.createElement("input", { name: "person", placeholder: "Adın (örn. Ahmet - Gündüz Vardiyası)", style: { padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13, outline: "none" } }),
+          React.createElement("input", { name: "person", placeholder: "Adın (örn. Ahmet - Gündüz Vardiyası)", style: { padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13, outline: "none" , background: COLORS.panel, color: COLORS.ink } }),
           React.createElement("textarea", { name: "text", placeholder: "Not: örn. Raşel 3'te sorun var, elyaf ikmali gerekiyor...", rows: 3, style: { padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13, outline: "none", resize: "vertical", fontFamily: fontBody } }),
           React.createElement("button", { type: "submit", style: { background: COLORS.accent, color: "#fff", border: "none", borderRadius: 8, padding: "11px 0", fontWeight: 700, fontSize: 13.5, cursor: "pointer" } }, "+ Not Ekle")
         ),
@@ -1990,11 +2019,23 @@ function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [lang, setLang] = usePersistentState("lang", "tr");
   const [userRole, setUserRole] = useState("yonetici");
-  if (!loggedIn) return React.createElement(LoginScreen, { onLogin: (role) => { setUserRole(role); setLoggedIn(true); }, lang, setLang });
-  return React.createElement(MainBoard, { onLogout: () => setLoggedIn(false), lang, setLang, userRole });
+  const [dark, setDark] = usePersistentState("darkMode", false);
+  Object.assign(COLORS, dark ? DARK_PALETTE : LIGHT_PALETTE);
+  if (!loggedIn) return React.createElement(LoginScreen, { onLogin: (role) => { setUserRole(role); setLoggedIn(true); }, lang, setLang, dark, setDark });
+  return React.createElement(MainBoard, { onLogout: () => setLoggedIn(false), lang, setLang, userRole, dark, setDark });
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {
+      // Service worker kurulamazsa (örn. file:// üzerinden açılmışsa) sessizce devam et —
+      // uygulama yine çalışır, sadece çevrimdışı önbellekleme aktif olmaz.
+    });
+  });
+}
+
 </script>
 </body>
 </html>
