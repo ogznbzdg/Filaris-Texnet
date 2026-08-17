@@ -963,17 +963,18 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
             React.createElement("div", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 16, lineHeight: 1.1 } },
               "Filaris ", React.createElement("span", { style: { color: COLORS.accent } }, "Texnet")
             ),
-            React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, display: "flex", alignItems: "center", gap: 6 } },
-              t("header_sub"),
-              !isDesktop && React.createElement("span", { style: { fontSize: 9.5, fontWeight: 700, color: COLORS.accent, background: COLORS.accent + "14", borderRadius: 999, padding: "2px 7px" } }, lang === "en" ? currentRole.labelEn : currentRole.labelTr),
-              !isOnline && React.createElement("span", { style: { fontSize: 9.5, fontWeight: 700, color: "#fff", background: COLORS.alert, borderRadius: 999, padding: "2px 7px", display: "flex", alignItems: "center", gap: 3 } }, "● " + (lang === "en" ? "Offline" : "Çevrimdışı"))
-            )
+            isDesktop
+              ? React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim } }, t("header_sub"))
+              : React.createElement("div", { style: { fontSize: 9.5, display: "flex", alignItems: "center", gap: 5, marginTop: 2, flexWrap: "wrap" } },
+                  React.createElement("span", { style: { fontWeight: 700, color: COLORS.accent, background: COLORS.accent + "14", borderRadius: 999, padding: "2px 7px" } }, lang === "en" ? currentRole.labelEn : currentRole.labelTr),
+                  !isOnline && React.createElement("span", { style: { fontWeight: 700, color: "#fff", background: COLORS.alert, borderRadius: 999, padding: "2px 7px" } }, "● " + (lang === "en" ? "Offline" : "Çevrimdışı"))
+                )
           )
         ),
         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
           !isDesktop && React.createElement(ThemeToggle, { dark, setDark }),
           React.createElement(LangToggle, { lang, setLang }),
-          React.createElement("div", { style: { textAlign: "right" } },
+          isDesktop && React.createElement("div", { style: { textAlign: "right" } },
             React.createElement("div", { style: { fontFamily: fontMono, fontSize: 22, fontWeight: 700, color: COLORS.accent, lineHeight: 1 } }, totalToday.toLocaleString("tr-TR"), React.createElement("span", { style: { fontSize: 12, color: COLORS.inkDim, marginLeft: 4 } }, "m")),
             React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginTop: 2 } }, t("header_today"))
           ),
@@ -1810,8 +1811,8 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
                 React.createElement(TraceabilityChain, { steps: [
                   { label: "Hammadde", done: true },
                   { label: "Örme", done: barkodResult.type !== "Hammadde" },
-                  { label: "Boyahane", done: barkodResult.type === "Mamul" },
-                  { label: "Kalite", done: barkodResult.type === "Mamul" },
+                  { label: "Boyahane", done: barkodResult.type.startsWith("Mamul") },
+                  { label: "Kalite", done: barkodResult.type.startsWith("Mamul") },
                   { label: "Sevkiyat", done: orders.some(o => o.product === barkodResult.item.name && (o.stage === "Sevke hazır" || o.stage === "Sevk edildi")) },
                 ] })
               )
