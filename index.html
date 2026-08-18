@@ -635,6 +635,11 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
   const tc = (s) => lang === "en" ? (CONTENT_TRANSLATIONS[s] || s) : s;
   const currentRole = ROLES.find(r => r.key === userRole) || ROLES[0];
   const visibleCategories = TAB_CATEGORIES.filter(c => currentRole.cats.includes(c.key));
+  // Özet ekranındaki kısayol kartları gibi, alt navigasyon/sidebar DIŞINDAKİ her setTab çağrısı
+  // buradan geçmeli — yoksa bir rol, kendi yetkisinde olmayan bir sekmeye kart tıklayarak ulaşabilir
+  // (bunu canlı testte Muhasebe rolüyle "Makine Durumu" kartına tıklayarak yakaladık).
+  const canSee = (tabKey) => visibleCategories.some(c => c.tabs.includes(tabKey));
+  const goTab = (tabKey) => { if (canSee(tabKey)) setTab(tabKey); };
   const [isDesktop, setIsDesktop] = useState(typeof window !== "undefined" && window.matchMedia("(min-width: 900px)").matches);
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 900px)");
@@ -1030,30 +1035,34 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
         return React.createElement("div", null,
           React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginBottom: 12 } }, "Bugün · " + new Date().toLocaleDateString("tr-TR", { day: "2-digit", month: "long", year: "numeric" })),
           React.createElement("div", { style: { display: "grid", gridTemplateColumns: isDesktop ? "1fr 1fr 1fr" : "1fr 1fr", gap: 10 } },
-            React.createElement(StatCard, { label: t("stat_today_prod"), value: totalToday.toLocaleString("tr-TR") + " m", sub: runningCount + " " + t("running"), color: COLORS.ok, icon: "uretim", onClick: () => setTab("uretim") }),
-            React.createElement(StatCard, { label: t("stat_machine"), value: runningCount + "/" + machines.length, sub: idleCount + " " + t("idle"), color: COLORS.accent, icon: "uretim", onClick: () => setTab("uretim") }),
-            React.createElement(StatCard, { label: t("stat_critical_stock"), value: criticalTotal, sub: criticalTotal > 0 ? "acil ikmal gerekiyor" : "sorun yok", color: criticalTotal > 0 ? COLORS.alert : COLORS.ok, icon: "stok", onClick: () => setTab("stok") }),
-            React.createElement(StatCard, { label: t("stat_boyahane"), value: activeVats + "/" + dyeVats.length, sub: "kazan aktif", color: COLORS.accent, icon: "boyahane", onClick: () => setTab("boyahane") }),
-            React.createElement(StatCard, { label: t("stat_pending_order"), value: pendingOrders.length, sub: "sevke hazır değil", color: pendingOrders.length > 0 ? COLORS.alert : COLORS.ok, icon: "siparis", onClick: () => setTab("siparis") }),
-            React.createElement(StatCard, { label: t("stat_cert"), value: certOkGlobal ? "✓ Tamam" : "✕ Eksik", sub: "SP-1042 · RCS/GRS", color: certOkGlobal ? COLORS.ok : COLORS.alert, icon: "kalite", onClick: () => setTab("kalite") })
+            canSee("uretim") && React.createElement(StatCard, { label: t("stat_today_prod"), value: totalToday.toLocaleString("tr-TR") + " m", sub: runningCount + " " + t("running"), color: COLORS.ok, icon: "uretim", onClick: () => goTab("uretim") }),
+            canSee("uretim") && React.createElement(StatCard, { label: t("stat_machine"), value: runningCount + "/" + machines.length, sub: idleCount + " " + t("idle"), color: COLORS.accent, icon: "uretim", onClick: () => goTab("uretim") }),
+            canSee("stok") && React.createElement(StatCard, { label: t("stat_critical_stock"), value: criticalTotal, sub: criticalTotal > 0 ? "acil ikmal gerekiyor" : "sorun yok", color: criticalTotal > 0 ? COLORS.alert : COLORS.ok, icon: "stok", onClick: () => goTab("stok") }),
+            canSee("boyahane") && React.createElement(StatCard, { label: t("stat_boyahane"), value: activeVats + "/" + dyeVats.length, sub: "kazan aktif", color: COLORS.accent, icon: "boyahane", onClick: () => goTab("boyahane") }),
+            canSee("siparis") && React.createElement(StatCard, { label: t("stat_pending_order"), value: pendingOrders.length, sub: "sevke hazır değil", color: pendingOrders.length > 0 ? COLORS.alert : COLORS.ok, icon: "siparis", onClick: () => goTab("siparis") }),
+            canSee("kalite") && React.createElement(StatCard, { label: t("stat_cert"), value: certOkGlobal ? "✓ Tamam" : "✕ Eksik", sub: "SP-1042 · RCS/GRS", color: certOkGlobal ? COLORS.ok : COLORS.alert, icon: "kalite", onClick: () => goTab("kalite") })
           ),
-          React.createElement(SectionLabel, null, t("sec_trend")),
-          React.createElement(Card, null, React.createElement(TrendChart, { data: productionTrend, color: COLORS.accent })),
-          React.createElement(SectionLabel, { count: pendingOrders.length }, t("sec_upcoming")),
-          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
-            pendingOrders.map(o => {
-              const pct = Math.round((o.produced / o.qty) * 100);
-              return React.createElement("button", { key: o.id, onClick: () => setTab("siparis"), style: { textAlign: "left", background: COLORS.panel, border: "1px solid " + COLORS.border, borderRadius: 8, padding: "10px 12px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" } },
-                React.createElement("div", null,
-                  React.createElement("div", { style: { fontFamily: fontMono, fontSize: 11, color: COLORS.accent } }, o.id),
-                  React.createElement("div", { style: { fontSize: 12.5, fontWeight: 600, marginTop: 2 } }, o.customer + " · " + tc(o.product))
-                ),
-                React.createElement("div", { style: { textAlign: "right" } },
-                  React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim } }, o.due),
-                  React.createElement("div", { style: { fontFamily: fontMono, fontSize: 12, fontWeight: 700, color: COLORS.ink } }, "%" + pct)
-                )
-              );
-            })
+          canSee("uretim") && React.createElement(React.Fragment, null,
+            React.createElement(SectionLabel, null, t("sec_trend")),
+            React.createElement(Card, null, React.createElement(TrendChart, { data: productionTrend, color: COLORS.accent }))
+          ),
+          canSee("siparis") && React.createElement(React.Fragment, null,
+            React.createElement(SectionLabel, { count: pendingOrders.length }, t("sec_upcoming")),
+            React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+              pendingOrders.map(o => {
+                const pct = Math.round((o.produced / o.qty) * 100);
+                return React.createElement("button", { key: o.id, onClick: () => goTab("siparis"), style: { textAlign: "left", background: COLORS.panel, border: "1px solid " + COLORS.border, borderRadius: 8, padding: "10px 12px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" } },
+                  React.createElement("div", null,
+                    React.createElement("div", { style: { fontFamily: fontMono, fontSize: 11, color: COLORS.accent } }, o.id),
+                    React.createElement("div", { style: { fontSize: 12.5, fontWeight: 600, marginTop: 2 } }, o.customer + " · " + tc(o.product))
+                  ),
+                  React.createElement("div", { style: { textAlign: "right" } },
+                    React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim } }, o.due),
+                    React.createElement("div", { style: { fontFamily: fontMono, fontSize: 12, fontWeight: 700, color: COLORS.ink } }, "%" + pct)
+                  )
+                );
+              })
+            )
           ),
           notifications.length > 0 && React.createElement(React.Fragment, null,
             React.createElement(SectionLabel, { count: notifications.length }, t("sec_notif")),
