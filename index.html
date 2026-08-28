@@ -28,7 +28,7 @@
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <script type="text/babel" data-type="module">
-const { useState, useMemo, useRef, useEffect } = React;
+const { useState, useMemo, useRef, useEffect, useLayoutEffect } = React;
 
 // Demo için basit kalıcılık: gerçek bir veritabanı değil, ama sayfa yenilendiğinde
 // veya telefon kapatılıp açıldığında veri kaybolmasın diye tarayıcının localStorage'ında saklıyoruz.
@@ -528,10 +528,18 @@ function NavIcon({ tabKey, active, onBadge, color }) {
     React.createElement("rect", { x: 4, y: 3, width: 16, height: 18, rx: 2 }), React.createElement("path", { d: "M8 8h8M8 12h8M8 16h5", strokeLinecap: "round" }));
 }
 function Spool({ percent, color }) {
-  const r = 26, c = 2 * Math.PI * r, offset = c - (Math.min(percent, 100) / 100) * c;
+  // Sayfaya her girildiğinde "canlı güncelleniyor" hissi versin diye,
+  // ilk çizimde %0'dan başlayıp bir sonraki tick'te gerçek değere geçiyor —
+  // zaten tanımlı olan CSS transition'ı bu sayede gerçekten tetiklemiş oluyoruz.
+  const [animated, setAnimated] = useState(0);
+  useEffect(() => {
+    const t = setTimeout(() => setAnimated(percent), 60);
+    return () => clearTimeout(t);
+  }, [percent]);
+  const r = 26, c = 2 * Math.PI * r, offset = c - (Math.min(animated, 100) / 100) * c;
   return React.createElement("svg", { width: 60, height: 60, viewBox: "0 0 64 64", style: { transform: "rotate(-90deg)" } },
     React.createElement("circle", { cx: 32, cy: 32, r, fill: "none", stroke: COLORS.border, strokeWidth: 6 }),
-    React.createElement("circle", { cx: 32, cy: 32, r, fill: "none", stroke: color, strokeWidth: 6, strokeDasharray: c, strokeDashoffset: offset, strokeLinecap: "round", style: { transition: "stroke-dashoffset 0.6s ease" } })
+    React.createElement("circle", { cx: 32, cy: 32, r, fill: "none", stroke: color, strokeWidth: 6, strokeDasharray: c, strokeDashoffset: offset, strokeLinecap: "round", style: { transition: "stroke-dashoffset 0.7s cubic-bezier(0.22,1,0.36,1)" } })
   );
 }
 function Pill({ label, color }) {
@@ -567,11 +575,26 @@ function TrendChart({ data, color, height }) {
   const points = data.map((d, i) => ({ x: i * stepX, y: height - ((d.value - min) / range) * (height - 24) - 12 }));
   const path = points.map((p, i) => (i === 0 ? "M" : "L") + p.x + "," + p.y).join(" ");
   const areaPath = path + " L" + points[points.length - 1].x + "," + height + " L0," + height + " Z";
+  // Bu sekmeye her girildiğinde grafik sıfırdan "çiziliyormuş" gibi görünsün diye:
+  // gerçek path uzunluğunu ölçüp (Spool'daki dairesel göstergeyle aynı, kanıtlanmış teknik),
+  // boyamadan hemen önce sıfırlıyor, kısa bir gecikmeyle gerçek değere geçiş yaptırıyoruz.
+  const pathRef = useRef(null);
+  const [len, setLen] = useState(0);
+  const [drawn, setDrawn] = useState(false);
+  useLayoutEffect(() => {
+    if (pathRef.current) setLen(pathRef.current.getTotalLength());
+    setDrawn(false);
+  }, [data]);
+  useEffect(() => {
+    if (!len) return;
+    const t = setTimeout(() => setDrawn(true), 60);
+    return () => clearTimeout(t);
+  }, [len]);
   return React.createElement("div", null,
     React.createElement("svg", { width: "100%", height, viewBox: "0 0 " + w + " " + height, preserveAspectRatio: "none", style: { overflow: "visible" } },
-      React.createElement("path", { d: areaPath, fill: color, opacity: 0.08 }),
-      React.createElement("path", { d: path, fill: "none", stroke: color, strokeWidth: 2.5, strokeLinejoin: "round", strokeLinecap: "round" }),
-      points.map((p, i) => React.createElement("circle", { key: i, cx: p.x, cy: p.y, r: i === points.length - 1 ? 4 : 2.5, fill: color }))
+      React.createElement("path", { d: areaPath, fill: color, opacity: drawn ? 0.08 : 0, style: { transition: "opacity 0.8s ease 0.3s" } }),
+      React.createElement("path", { ref: pathRef, d: path, fill: "none", stroke: color, strokeWidth: 2.5, strokeLinejoin: "round", strokeLinecap: "round", strokeDasharray: len || 1, strokeDashoffset: drawn ? 0 : (len || 1), style: { transition: "stroke-dashoffset 0.9s cubic-bezier(0.22,1,0.36,1)" } }),
+      points.map((p, i) => React.createElement("circle", { key: i, cx: p.x, cy: p.y, r: i === points.length - 1 ? 4 : 2.5, fill: color, opacity: drawn ? 1 : 0, style: { transition: "opacity 0.4s ease " + (0.15 + i * 0.05) + "s" } }))
     ),
     React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginTop: 4 } },
       data.map((d, i) => React.createElement("span", { key: i, style: { fontSize: 9.5, color: "#9096A0", fontFamily: "'JetBrains Mono',monospace" } }, d.label))
