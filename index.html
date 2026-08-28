@@ -10,6 +10,10 @@
 <link rel="manifest" href="manifest.json" />
 <style>
   html, body { margin: 0; overflow-x: hidden; max-width: 100%; }
+  /* Mikro-etkileşim: her butona basınca hafif küçülme + koyulaşma — "tıklamam işe yaradı" hissi */
+  button { transition: transform 0.08s ease, opacity 0.08s ease; }
+  button:active { transform: scale(0.96); opacity: 0.75; }
+  @media (hover: hover) { button:hover { filter: brightness(0.97); } }
   * { box-sizing: border-box; }
 </style>
 </head>
@@ -254,6 +258,16 @@ function buildIrsaliyeHtml(order, irsaliyeNo, company) {
     .signs{display:flex;justify-content:space-between;margin-top:60px;}
     .sign{width:45%;border-top:1px solid #999;padding-top:6px;font-size:11px;color:#666;text-align:center;}
     .foot{margin-top:30px;font-size:10px;color:#999;border-top:1px solid #eee;padding-top:10px;}
+    .no{white-space:nowrap;}
+    @media (max-width:480px){
+      body{padding:18px;}
+      .head{flex-direction:column;gap:12px;}
+      .irs-no{text-align:left;}
+      .irs-no .no{font-size:19px;}
+      .info-grid{grid-template-columns:1fr;}
+      .signs{flex-direction:column;gap:30px;}
+      .sign{width:100%;}
+    }
   </style></head><body>
     <div class="head">
       <div>
@@ -744,16 +758,45 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
 
   // En az fireyi verecek lot öneri motoru: hedef miktara en yakın (ve yeterli) lotu,
   // en az artık/fire bırakacak şekilde önerir — büyük fazla stoktan kesmek yerine.
+  // Tek lot yetmezse, en az sayıda lotu en az artıkla birleştiren kombinasyonu arar
+  // (küçük bir demo stok listesinde tüm alt kümeleri denemek yeterince hızlı).
   const suggestBestLot = (hedefMiktar) => {
     const target = Number(hedefMiktar);
     if (!target || target <= 0) return null;
-    const candidates = [...stockLayers.hamKumas, ...stockLayers.mamul].filter(s => s.qty >= target);
-    if (candidates.length === 0) {
-      const closest = [...stockLayers.hamKumas, ...stockLayers.mamul].sort((a, b) => b.qty - a.qty)[0];
-      return closest ? { lot: closest, yeterli: false, fire: 0 } : null;
+    const all = [...stockLayers.hamKumas, ...stockLayers.mamul];
+    if (all.length === 0) return null;
+
+    // 1) Tek lot yeterli mi?
+    const singleCandidates = all.filter(s => s.qty >= target);
+    if (singleCandidates.length > 0) {
+      const best = singleCandidates.reduce((min, s) => (s.qty - target) < (min.qty - target) ? s : min, singleCandidates[0]);
+      return { lots: [best], multi: false, yeterli: true, fire: Math.round((best.qty - target) * 10) / 10 };
     }
-    const best = candidates.reduce((min, s) => (s.qty - target) < (min.qty - target) ? s : min, candidates[0]);
-    return { lot: best, yeterli: true, fire: Math.round((best.qty - target) * 10) / 10 };
+
+    // 2) Tek lot yetmiyorsa, artan boyutlarda kombinasyon dene (2'li, sonra 3'lü, ...)
+    const combos = (arr, size) => {
+      const results = [];
+      const pick = (start, chosen) => {
+        if (chosen.length === size) { results.push([...chosen]); return; }
+        for (let i = start; i < arr.length; i++) { chosen.push(arr[i]); pick(i + 1, chosen); chosen.pop(); }
+      };
+      pick(0, []);
+      return results;
+    };
+    for (let size = 2; size <= all.length; size++) {
+      const candidates = combos(all, size).filter(c => c.reduce((s, x) => s + x.qty, 0) >= target);
+      if (candidates.length > 0) {
+        const best = candidates.reduce((min, c) => {
+          const cSum = c.reduce((s, x) => s + x.qty, 0), minSum = min.reduce((s, x) => s + x.qty, 0);
+          return (cSum - target) < (minSum - target) ? c : min;
+        }, candidates[0]);
+        const bestSum = best.reduce((s, x) => s + x.qty, 0);
+        return { lots: best, multi: true, yeterli: true, fire: Math.round((bestSum - target) * 10) / 10 };
+      }
+    }
+
+    // 3) Tüm lotlar birleşse bile yetmiyor
+    return { lots: all, multi: true, yeterli: false, fire: 0 };
   };
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState("");
@@ -765,11 +808,11 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
   const criticalMamul = stockLayers.mamul.filter(s => s.qty < s.min);
   const certOkGlobal = certNumber.trim() !== "" && tcNumber.trim() !== "";
   const notifications = [
-    ...criticalRaw.map(s => ({ level: "alert", text: s.name + " kritik seviyenin altında (" + s.qty + " " + s.unit + ")" })),
-    ...criticalMamul.map(s => ({ level: "alert", text: s.name + " mamul stok kritik seviyede (" + s.qty + " " + s.unit + ")" })),
-    ...(!certOkGlobal ? [{ level: "alert", text: "SP-1042: RCS/GRS sertifikası eksik — sevkiyat kilitli" }] : []),
-    { level: "warn", text: "SP-1045: teslim tarihine az kaldı, üretim henüz %22" },
-  ];
+    ...criticalRaw.map(s => ({ level: "alert", cat: "stok", text: s.name + " kritik seviyenin altında (" + s.qty + " " + s.unit + ")" })),
+    ...criticalMamul.map(s => ({ level: "alert", cat: "stok", text: s.name + " mamul stok kritik seviyede (" + s.qty + " " + s.unit + ")" })),
+    ...(!certOkGlobal ? [{ level: "alert", cat: "kalite", text: "SP-1042: RCS/GRS sertifikası eksik — sevkiyat kilitli" }] : []),
+    { level: "warn", cat: "siparis", text: "SP-1045: teslim tarihine az kaldı, üretim henüz %22" },
+  ].filter(n => canSee(n.cat));
 
   const lookupByCode = useMemo(() => {
     const map = {};
@@ -1247,12 +1290,20 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
             React.createElement("input", { value: lotOneriHedef, onChange: e => setLotOneriHedef(e.target.value), placeholder: "Gereken metraj (örn. 180)", type: "number", style: { flex: 1, padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13.5, outline: "none", fontFamily: fontMono , background: COLORS.panel, color: COLORS.ink } }),
             React.createElement("button", { onClick: () => setLotOneriSonuc(suggestBestLot(lotOneriHedef)), style: { background: COLORS.accent, color: "#fff", border: "none", borderRadius: 8, padding: "0 16px", fontWeight: 700, fontSize: 13, cursor: "pointer" } }, "Öner")
           ),
-          lotOneriSonuc && (lotOneriSonuc.lot ? React.createElement("div", { style: { marginTop: 12, background: COLORS.panelAlt, borderRadius: 8, padding: 10 } },
-            React.createElement("div", { style: { fontSize: 12.5, fontWeight: 700 } }, lotOneriSonuc.lot.name + " · Lot " + lotOneriSonuc.lot.lot),
-            React.createElement("div", { style: { fontSize: 11.5, color: COLORS.inkDim, marginTop: 4 } }, "Stokta: " + lotOneriSonuc.lot.qty + " " + lotOneriSonuc.lot.unit),
+          lotOneriSonuc && (lotOneriSonuc.lots && lotOneriSonuc.lots.length > 0 ? React.createElement("div", { style: { marginTop: 12, background: COLORS.panelAlt, borderRadius: 8, padding: 10 } },
+            lotOneriSonuc.multi && React.createElement(Pill, { label: lotOneriSonuc.yeterli ? "🔗 " + lotOneriSonuc.lots.length + " lot birleştirilirse" : "⚠ Tüm stok birleşse bile yetmiyor", color: lotOneriSonuc.yeterli ? COLORS.dye : COLORS.alert }),
+            React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 6, marginTop: lotOneriSonuc.multi ? 8 : 0 } },
+              lotOneriSonuc.lots.map((l, i) => React.createElement("div", { key: i, style: { fontSize: 12.5, fontWeight: 700 } },
+                l.name + " · Lot " + l.lot + " ",
+                React.createElement("span", { style: { fontSize: 11.5, fontWeight: 500, color: COLORS.inkDim } }, "(" + l.qty + " " + l.unit + ")")
+              ))
+            ),
+            lotOneriSonuc.multi && React.createElement("div", { style: { fontSize: 11.5, color: COLORS.inkDim, marginTop: 6, paddingTop: 6, borderTop: "1px solid " + COLORS.border } },
+              "Toplam: " + lotOneriSonuc.lots.reduce((s, l) => s + l.qty, 0) + " " + lotOneriSonuc.lots[0].unit
+            ),
             lotOneriSonuc.yeterli
-              ? React.createElement("div", { style: { fontSize: 11.5, color: COLORS.ok, marginTop: 4, fontWeight: 600 } }, "Bu lot kullanılırsa yalnızca ~" + lotOneriSonuc.fire + " m artık kalır (en düşük fire seçeneği).")
-              : React.createElement("div", { style: { fontSize: 11.5, color: COLORS.alert, marginTop: 4, fontWeight: 600 } }, "Uyarı: hiçbir tek lot tek başına yeterli değil, en büyüğü öneriliyor — birleştirme gerekebilir.")
+              ? React.createElement("div", { style: { fontSize: 11.5, color: COLORS.ok, marginTop: 6, fontWeight: 600 } }, "Bu " + (lotOneriSonuc.multi ? "kombinasyon" : "lot") + " kullanılırsa yalnızca ~" + lotOneriSonuc.fire + " m artık kalır (en düşük fire seçeneği).")
+              : React.createElement("div", { style: { fontSize: 11.5, color: COLORS.alert, marginTop: 6, fontWeight: 600 } }, "Uyarı: mevcut tüm lotlar birleşse bile hedefe yetmiyor — dışarıdan tedarik gerekebilir.")
           ) : React.createElement("div", { style: { marginTop: 10, fontSize: 12, color: COLORS.inkDim } }, "Uygun lot bulunamadı."))
         ),
 
@@ -1308,9 +1359,9 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
           React.createElement("button", { onClick: () => stockFileInputRef.current && stockFileInputRef.current.click(), style: { display: "flex", alignItems: "center", gap: 6, background: "transparent", border: "1px solid " + COLORS.accent, borderRadius: 6, padding: "8px 12px", fontSize: 11.5, fontWeight: 600, color: COLORS.accent, cursor: "pointer", fontFamily: fontBody } }, "📤 Excel'den İçe Aktar"),
           React.createElement("input", { ref: stockFileInputRef, type: "file", accept: ".xlsx,.xls", onChange: handleStockFileSelected, style: { display: "none" } })
         ),
-        stockImportError && React.createElement("div", { style: { background: "#FDECEA", border: "1px solid " + COLORS.alert + "44", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: COLORS.alert, marginTop: 8 } }, stockImportError),
+        stockImportError && React.createElement("div", { style: { background: COLORS.alert + "1A", border: "1px solid " + COLORS.alert + "44", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: COLORS.alert, marginTop: 8 } }, stockImportError),
         stockTab === "iplik" && React.createElement(React.Fragment, null,
-          criticalRaw.length > 0 && React.createElement("div", { style: { background: "#FDECEA", border: "1px solid " + COLORS.alert + "44", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: COLORS.alert, fontWeight: 600, marginTop: 12 } }, criticalRaw.length + " hammadde kritik seviyenin altında"),
+          criticalRaw.length > 0 && React.createElement("div", { style: { background: COLORS.alert + "1A", border: "1px solid " + COLORS.alert + "44", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: COLORS.alert, fontWeight: 600, marginTop: 12 } }, criticalRaw.length + " hammadde kritik seviyenin altında"),
           React.createElement(SectionLabel, { count: stockLayers.iplik.length }, "Hammadde Stoku"),
           React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
             stockLayers.iplik.map(s => {
@@ -1352,7 +1403,7 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
           )
         ),
         stockTab === "mamul" && React.createElement(React.Fragment, null,
-          criticalMamul.length > 0 && React.createElement("div", { style: { background: "#FDECEA", border: "1px solid " + COLORS.alert + "44", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: COLORS.alert, fontWeight: 600, marginTop: 12 } }, criticalMamul.length + " mamul ürün kritik seviyenin altında"),
+          criticalMamul.length > 0 && React.createElement("div", { style: { background: COLORS.alert + "1A", border: "1px solid " + COLORS.alert + "44", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: COLORS.alert, fontWeight: 600, marginTop: 12 } }, criticalMamul.length + " mamul ürün kritik seviyenin altında"),
           React.createElement(SectionLabel, { count: stockLayers.mamul.length }, "Boyanmış / Sevke Hazır Stok"),
           React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
             stockLayers.mamul.map(s => {
@@ -1505,7 +1556,7 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
             style: { display: "flex", alignItems: "center", gap: 6, background: "transparent", border: "1px solid " + COLORS.dye, borderRadius: 6, padding: "7px 12px", fontSize: 11.5, fontWeight: 600, color: COLORS.dye, cursor: "pointer", fontFamily: fontBody }
           }, "🧮 Zirve İçin Excel")
         ),
-        importError && React.createElement("div", { style: { background: "#FDECEA", border: "1px solid " + COLORS.alert + "44", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: COLORS.alert } }, importError),
+        importError && React.createElement("div", { style: { background: COLORS.alert + "1A", border: "1px solid " + COLORS.alert + "44", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: COLORS.alert } }, importError),
         orders.map(o => {
           const pct = Math.round((o.produced / o.qty) * 100);
           const stageColor = o.stage === "Sevke hazır" ? COLORS.accent : o.stage === "Bekliyor" ? COLORS.inkDim : COLORS.ok;
@@ -1560,8 +1611,10 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
           setNewOrderOpen(false);
         }
       },
-        React.createElement(FormField, { name: "customer", label: "Müşteri", placeholder: "örn. Nova Tekstil", required: true }),
-        React.createElement(FormField, { name: "product", label: "Ürün", placeholder: "örn. Ekru Dantel 140cm", required: true }),
+        React.createElement(FormField, { name: "customer", label: "Müşteri", placeholder: "örn. Nova Tekstil", required: true, list: "cari-list" }),
+        React.createElement("datalist", { id: "cari-list" }, [...new Set(orders.map(o => o.customer))].map(c => React.createElement("option", { key: c, value: c }))),
+        React.createElement(FormField, { name: "product", label: "Ürün", placeholder: "örn. Ekru Dantel 140cm", required: true, list: "urun-list" }),
+        React.createElement("datalist", { id: "urun-list" }, [...new Set([...products.map(p => p.name), ...orders.map(o => o.product)])].map(p => React.createElement("option", { key: p, value: p }))),
         React.createElement(FormField, { name: "qty", label: "Miktar (m)", type: "number", placeholder: "örn. 500", required: true }),
         React.createElement(FormField, { name: "due", label: "Teslim Tarihi", placeholder: "örn. 15 Ağu" }),
         React.createElement("div", { style: { fontSize: 10.5, color: COLORS.inkDim, lineHeight: 1.4 } }, "Not: Bu demo aşamasında eklenen sipariş yalnızca bu oturumda görünür.")
@@ -1783,7 +1836,7 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
             React.createElement("canvas", { ref: canvasRef, style: { display: "none" } }),
             React.createElement("button", { onClick: stopCameraScan, style: { width: "100%", marginTop: 8, background: "transparent", border: "1px solid " + COLORS.border, borderRadius: 8, padding: "10px 0", fontWeight: 600, fontSize: 13, cursor: "pointer", color: COLORS.inkDim } }, "Taramayı Durdur")
           ),
-        scanError && React.createElement("div", { style: { marginTop: 10, fontSize: 11.5, color: COLORS.alert, background: "#FDECEA", padding: "10px 12px", borderRadius: 8, lineHeight: 1.4 } }, scanError),
+        scanError && React.createElement("div", { style: { marginTop: 10, fontSize: 11.5, color: COLORS.alert, background: COLORS.alert + "1A", padding: "10px 12px", borderRadius: 8, lineHeight: 1.4 } }, scanError),
         React.createElement("div", { style: { display: "flex", gap: 8, marginTop: 14 } },
           React.createElement("input", { value: barkodManual, onChange: e => setBarkodManual(e.target.value), onKeyDown: e => e.key === "Enter" && handleManualScan(), placeholder: "Lot kodu gir (örn. L-2211)", style: { flex: 1, padding: "11px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13.5, outline: "none", fontFamily: fontMono , background: COLORS.panel, color: COLORS.ink } }),
           React.createElement("button", { onClick: handleManualScan, style: { background: COLORS.panelAlt, border: "1px solid " + COLORS.border, borderRadius: 8, padding: "0 16px", fontWeight: 700, fontSize: 13, cursor: "pointer", color: COLORS.ink } }, "Ara")
@@ -1884,7 +1937,7 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
           ocrBusy ? "🔎 Okunuyor, lütfen bekle..." : "📄 Belge Fotoğrafı Çek / Yükle",
           React.createElement("input", { type: "file", accept: "image/*", capture: "environment", onChange: handleDocumentPhoto, disabled: ocrBusy, style: { display: "none" , background: COLORS.panel, color: COLORS.ink } })
         ),
-        ocrError && React.createElement("div", { style: { marginTop: 10, fontSize: 11.5, color: COLORS.alert, background: "#FDECEA", padding: "10px 12px", borderRadius: 8, lineHeight: 1.4 } }, ocrError),
+        ocrError && React.createElement("div", { style: { marginTop: 10, fontSize: 11.5, color: COLORS.alert, background: COLORS.alert + "1A", padding: "10px 12px", borderRadius: 8, lineHeight: 1.4 } }, ocrError),
         ocrResult && React.createElement(Card, { accentLeft: COLORS.dye },
           React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginBottom: 10 } }, "Okunan bilgiler — göndermeden önce kontrol et:"),
           React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
@@ -1958,7 +2011,7 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
           style: { display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }
         },
           React.createElement("input", { name: "person", placeholder: "Adın (örn. Ahmet - Gündüz Vardiyası)", style: { padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13, outline: "none" , background: COLORS.panel, color: COLORS.ink } }),
-          React.createElement("textarea", { name: "text", placeholder: "Not: örn. Raşel 3'te sorun var, elyaf ikmali gerekiyor...", rows: 3, style: { padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13, outline: "none", resize: "vertical", fontFamily: fontBody } }),
+          React.createElement("textarea", { name: "text", placeholder: "Not: örn. Raşel 3'te sorun var, elyaf ikmali gerekiyor...", rows: 3, style: { padding: "10px 12px", borderRadius: 8, border: "1px solid " + COLORS.border, fontSize: 13, outline: "none", resize: "vertical", fontFamily: fontBody, background: COLORS.panel, color: COLORS.ink } }),
           React.createElement("button", { type: "submit", style: { background: COLORS.accent, color: "#fff", border: "none", borderRadius: 8, padding: "11px 0", fontWeight: 700, fontSize: 13.5, cursor: "pointer" } }, "+ Not Ekle")
         ),
         React.createElement(SectionLabel, { count: shiftNotes.length }, "Vardiya Kayıtları"),
