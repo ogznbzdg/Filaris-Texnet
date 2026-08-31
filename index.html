@@ -453,7 +453,7 @@ function LoginScreen({ onLogin, lang, setLang, dark, setDark }) {
   return React.createElement("div", { style: { minHeight: "100vh", background: COLORS.base, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: fontBody, padding: 24, color: COLORS.ink } },
     React.createElement("div", { style: { width: "100%", maxWidth: 340, background: COLORS.panel, border: "1px solid " + COLORS.border, borderRadius: 12, padding: "28px 24px", boxShadow: COLORS.shadow, position: "relative" } },
       React.createElement("div", { style: { position: "absolute", top: 14, right: 14, display: "flex", gap: 6 } }, React.createElement(ThemeToggle, { dark, setDark }), React.createElement(LangToggle, { lang, setLang })),
-      React.createElement("div", { style: { display: "flex", justifyContent: "center", marginBottom: 16 } }, React.createElement(LogoMark, { size: 48 })),
+      React.createElement("div", { style: { display: "flex", justifyContent: "center", marginBottom: 16 } }, React.createElement(LogoMark, { size: 48, animated: true })),
       React.createElement("div", { style: { textAlign: "center", fontFamily: fontDisplay, fontWeight: 700, fontSize: 18, marginBottom: 2, color: COLORS.ink } }, "Filaris ", React.createElement("span", { style: { color: COLORS.accent } }, "Texnet")),
       React.createElement("div", { style: { textAlign: "center", fontSize: 12, color: COLORS.inkDim, marginBottom: 22 } }, t("login_title")),
       React.createElement("form", { onSubmit: handleSubmit, style: { display: "flex", flexDirection: "column", gap: 12 } },
@@ -484,13 +484,27 @@ function LoginScreen({ onLogin, lang, setLang, dark, setDark }) {
     )
   );
 }
-function LogoMark({ size }) {
+function LogoMark({ size, animated }) {
+  // Giriş ekranında logo halkaları %80 ve %75'e dolarak çiziliyor — "canlı" bir açılış hissi için.
+  // Header/sidebar'daki normal kullanımda (animated=false) eski statik hali aynen korunuyor.
+  const [drawn, setDrawn] = useState(!animated);
+  useEffect(() => {
+    if (!animated) return;
+    setDrawn(false);
+    let raf2;
+    const raf1 = requestAnimationFrame(() => { raf2 = requestAnimationFrame(() => setDrawn(true)); });
+    return () => { cancelAnimationFrame(raf1); if (raf2) cancelAnimationFrame(raf2); };
+  }, [animated]);
+  const r1 = 150, c1 = 2 * Math.PI * r1, target1 = 0.80;
+  const r2 = 96, c2 = 2 * Math.PI * r2, target2 = 0.75;
+  const ring1Style = animated ? { strokeDasharray: c1, strokeDashoffset: drawn ? c1 * (1 - target1) : c1, transition: "stroke-dashoffset 1.6s cubic-bezier(0.22,1,0.36,1)", transform: "rotate(-90deg)", transformOrigin: "256px 256px" } : {};
+  const ring2Style = animated ? { strokeDasharray: c2, strokeDashoffset: drawn ? c2 * (1 - target2) : c2, transition: "stroke-dashoffset 1.6s cubic-bezier(0.22,1,0.36,1) 0.18s", transform: "rotate(-90deg)", transformOrigin: "256px 256px" } : {};
   return React.createElement("svg", { width: size, height: size, viewBox: "0 0 512 512", style: { borderRadius: 8, flexShrink: 0 } },
     React.createElement("rect", { width: 512, height: 512, rx: 112, fill: "#0EA5B7" }),
-    React.createElement("circle", { cx: 256, cy: 256, r: 150, fill: "none", stroke: "#FFFFFF", strokeWidth: 26 }),
-    React.createElement("circle", { cx: 256, cy: 256, r: 96, fill: "none", stroke: "#FFFFFF", strokeWidth: 26 }),
+    React.createElement("circle", { cx: 256, cy: 256, r: r1, fill: "none", stroke: "#FFFFFF", strokeWidth: 26, strokeLinecap: animated ? "round" : "butt", style: ring1Style }),
+    React.createElement("circle", { cx: 256, cy: 256, r: r2, fill: "none", stroke: "#FFFFFF", strokeWidth: 26, strokeLinecap: animated ? "round" : "butt", style: ring2Style }),
     React.createElement("circle", { cx: 256, cy: 256, r: 42, fill: "#FFFFFF" }),
-    React.createElement("path", { d: "M256 106 A150 150 0 0 1 406 256", fill: "none", stroke: "#B7EEF2", strokeWidth: 26, strokeLinecap: "round" })
+    !animated && React.createElement("path", { d: "M256 106 A150 150 0 0 1 406 256", fill: "none", stroke: "#B7EEF2", strokeWidth: 26, strokeLinecap: "round" })
   );
 }
 function NavIcon({ tabKey, active, onBadge, color }) {
@@ -529,17 +543,20 @@ function NavIcon({ tabKey, active, onBadge, color }) {
 }
 function Spool({ percent, color }) {
   // Sayfaya her girildiğinde "canlı güncelleniyor" hissi versin diye,
-  // ilk çizimde %0'dan başlayıp bir sonraki tick'te gerçek değere geçiyor —
-  // zaten tanımlı olan CSS transition'ı bu sayede gerçekten tetiklemiş oluyoruz.
+  // ilk çizimde %0'dan başlayıp gerçek değere geçiyor. setTimeout yerine çift
+  // requestAnimationFrame kullanıyoruz — tarayıcının "önce %0'ı gerçekten boyaması"
+  // garanti altına alınmazsa (ki setTimeout bunu garanti etmiyor) geçiş hiç görünmüyor.
   const [animated, setAnimated] = useState(0);
   useEffect(() => {
-    const t = setTimeout(() => setAnimated(percent), 60);
-    return () => clearTimeout(t);
+    setAnimated(0);
+    let raf2;
+    const raf1 = requestAnimationFrame(() => { raf2 = requestAnimationFrame(() => setAnimated(percent)); });
+    return () => { cancelAnimationFrame(raf1); if (raf2) cancelAnimationFrame(raf2); };
   }, [percent]);
   const r = 26, c = 2 * Math.PI * r, offset = c - (Math.min(animated, 100) / 100) * c;
   return React.createElement("svg", { width: 60, height: 60, viewBox: "0 0 64 64", style: { transform: "rotate(-90deg)" } },
     React.createElement("circle", { cx: 32, cy: 32, r, fill: "none", stroke: COLORS.border, strokeWidth: 6 }),
-    React.createElement("circle", { cx: 32, cy: 32, r, fill: "none", stroke: color, strokeWidth: 6, strokeDasharray: c, strokeDashoffset: offset, strokeLinecap: "round", style: { transition: "stroke-dashoffset 1.0s cubic-bezier(0.22,1,0.36,1)" } })
+    React.createElement("circle", { cx: 32, cy: 32, r, fill: "none", stroke: color, strokeWidth: 6, strokeLinecap: "round", style: { strokeDasharray: c, strokeDashoffset: offset, transition: "stroke-dashoffset 1.4s cubic-bezier(0.22,1,0.36,1)" } })
   );
 }
 function Pill({ label, color }) {
@@ -575,29 +592,30 @@ function TrendChart({ data, color, height }) {
   const points = data.map((d, i) => ({ x: i * stepX, y: height - ((d.value - min) / range) * (height - 24) - 12 }));
   const path = points.map((p, i) => (i === 0 ? "M" : "L") + p.x + "," + p.y).join(" ");
   const areaPath = path + " L" + points[points.length - 1].x + "," + height + " L0," + height + " Z";
-  // Bu sekmeye her girildiğinde grafik sıfırdan "çiziliyormuş" gibi görünsün diye:
-  // gerçek path uzunluğunu ölçüp (Spool'daki dairesel göstergeyle aynı, kanıtlanmış teknik),
-  // boyamadan hemen önce sıfırlıyor, kısa bir gecikmeyle gerçek değere geçiş yaptırıyoruz.
-  const pathRef = useRef(null);
-  const [len, setLen] = useState(0);
+  // Çizginin gerçek uzunluğunu (DOM ölçümü/ref beklemeden, doğrudan render sırasında)
+  // nokta-nokta mesafe toplamıyla hesaplıyoruz — dash uzunluğu tam bu değere eşit olunca
+  // geçişin %100'ü görünür çizim anlamına geliyor (sabit büyük bir değerde geçişin çoğu boşa gider).
+  let pathLen = 0;
+  for (let i = 1; i < points.length; i++) {
+    const dx = points[i].x - points[i - 1].x, dy = points[i].y - points[i - 1].y;
+    pathLen += Math.sqrt(dx * dx + dy * dy);
+  }
+  const DASH = pathLen + 1;
   const [drawn, setDrawn] = useState(false);
-  useLayoutEffect(() => {
-    if (pathRef.current) setLen(pathRef.current.getTotalLength());
-    setDrawn(false);
-  }, [data]);
   useEffect(() => {
-    if (!len) return;
-    const t = setTimeout(() => setDrawn(true), 60);
-    return () => clearTimeout(t);
-  }, [len]);
+    setDrawn(false);
+    let raf2;
+    const raf1 = requestAnimationFrame(() => { raf2 = requestAnimationFrame(() => setDrawn(true)); });
+    return () => { cancelAnimationFrame(raf1); if (raf2) cancelAnimationFrame(raf2); };
+  }, [data]);
   return React.createElement("div", null,
     React.createElement("svg", { width: "100%", height, viewBox: "0 0 " + w + " " + height, preserveAspectRatio: "none", style: { overflow: "visible" } },
-      React.createElement("path", { d: areaPath, fill: color, opacity: drawn ? 0.08 : 0, style: { transition: "opacity 0.8s ease 0.3s" } }),
-      React.createElement("path", { ref: pathRef, d: path, fill: "none", stroke: color, strokeWidth: 2.5, strokeLinejoin: "round", strokeLinecap: "round", strokeDasharray: len || 1, strokeDashoffset: drawn ? 0 : (len || 1), style: { transition: "stroke-dashoffset 1.3s cubic-bezier(0.22,1,0.36,1)" } }),
+      React.createElement("path", { d: areaPath, fill: color, opacity: drawn ? 0.08 : 0, style: { transition: "opacity 1.1s ease 0.5s" } }),
+      React.createElement("path", { d: path, fill: "none", stroke: color, strokeWidth: 2.5, strokeLinejoin: "round", strokeLinecap: "round", style: { strokeDasharray: DASH, strokeDashoffset: drawn ? 0 : DASH, transition: "stroke-dashoffset 1.9s cubic-bezier(0.22,1,0.36,1)" } }),
       points.map((p, i) => {
         const finalR = i === points.length - 1 ? 4 : 2.5;
-        const delay = (0.2 + i * 0.06) + "s";
-        return React.createElement("circle", { key: i, cx: p.x, cy: p.y, r: drawn ? finalR : 0, fill: color, opacity: drawn ? 1 : 0, style: { transition: "r 0.45s cubic-bezier(0.34,1.56,0.64,1) " + delay + ", opacity 0.3s ease " + delay } });
+        const delay = (0.35 + i * 0.09) + "s";
+        return React.createElement("circle", { key: i, cx: p.x, cy: p.y, r: drawn ? finalR : 0, fill: color, opacity: drawn ? 1 : 0, style: { transition: "r 0.6s cubic-bezier(0.34,1.56,0.64,1) " + delay + ", opacity 0.4s ease " + delay } });
       })
     ),
     React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginTop: 4 } },
