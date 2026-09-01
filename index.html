@@ -103,7 +103,7 @@ const translations = {
     cat_ozet: "Özet", cat_uretim: "Üretim", cat_kalite: "Kalite", cat_ticari: "Ticari", cat_ekip: "Ekip",
     tab_uretim: "Örme", tab_boyahane: "Boyahane", tab_stok: "Stok", tab_fire: "Fire/Kalite Hatası",
     tab_kalite: "Kalite Kartı", tab_barkod: "Barkod", tab_urunler: "Ürünler",
-    tab_siparis: "Sipariş", tab_maliyet: "Maliyet", tab_tahmin: "Tahmin",
+    tab_siparis: "Sipariş", tab_musteriler: "Müşteriler", tab_maliyet: "Maliyet", tab_tahmin: "Tahmin",
     tab_vardiya: "Vardiya",
     stat_today_prod: "Bugünkü Üretim", stat_machine: "Makine Durumu", stat_critical_stock: "Kritik Stok",
     stat_boyahane: "Boyahane", stat_pending_order: "Bekleyen Sipariş", stat_cert: "Sertifika",
@@ -116,7 +116,7 @@ const translations = {
     cat_ozet: "Overview", cat_uretim: "Production", cat_kalite: "Quality", cat_ticari: "Commercial", cat_ekip: "Team",
     tab_uretim: "Knitting", tab_boyahane: "Dyehouse", tab_stok: "Stock", tab_fire: "Waste/Defects",
     tab_kalite: "Quality Card", tab_barkod: "Barcode", tab_urunler: "Products",
-    tab_siparis: "Orders", tab_maliyet: "Cost", tab_tahmin: "Forecast",
+    tab_siparis: "Orders", tab_musteriler: "Customers", tab_maliyet: "Cost", tab_tahmin: "Forecast",
     tab_vardiya: "Shift Log",
     stat_today_prod: "Today's Production", stat_machine: "Machine Status", stat_critical_stock: "Critical Stock",
     stat_boyahane: "Dyehouse", stat_pending_order: "Pending Orders", stat_cert: "Certificate",
@@ -128,7 +128,7 @@ const TAB_CATEGORIES = [
   { key: "ozet", labelKey: "cat_ozet", tabs: ["ozet"] },
   { key: "uretim_cat", labelKey: "cat_uretim", tabs: ["uretim", "boyahane", "stok", "fire"] },
   { key: "kalite_cat", labelKey: "cat_kalite", tabs: ["kalite", "barkod", "urunler"] },
-  { key: "ticari_cat", labelKey: "cat_ticari", tabs: ["siparis", "maliyet", "tahmin"] },
+  { key: "ticari_cat", labelKey: "cat_ticari", tabs: ["siparis", "musteriler", "maliyet", "tahmin"] },
   { key: "ekip_cat", labelKey: "cat_ekip", tabs: ["vardiya"] },
 ];
 // Rol bazlı görünüm: her rol yalnızca kendi işiyle ilgili kategorileri görür.
@@ -303,6 +303,11 @@ function buildIrsaliyeHtml(order, irsaliyeNo, company) {
   </body></html>`;
 }
 
+const initialCustomers = [
+  { id: "M-01", name: "Nova Tekstil", taxNo: "8451029634", phone: "+90 212 555 01 24", address: "Merter, İstanbul", since: "Oca 2025" },
+  { id: "M-02", name: "Lima Konfeksiyon", taxNo: "6203981147", phone: "+90 224 444 12 08", address: "Nilüfer, Bursa", since: "Mar 2025" },
+  { id: "M-03", name: "Aster Giyim", taxNo: "3097215680", phone: "+90 232 333 77 41", address: "Bornova, İzmir", since: "May 2025" },
+];
 const initialOrders = [
   { id: "SP-1042", customer: "Nova Tekstil", product: "Ecru Dantel 140cm", qty: 800, produced: 612, stage: "Örme", due: "28 Tem", irsaliye: "—", fatura: "—" },
   { id: "SP-1039", customer: "Lima Konfeksiyon", product: "Beyaz Dantel 90cm", qty: 500, produced: 500, stage: "Sevke hazır", due: "22 Tem", irsaliye: "IRS-3381", fatura: "Kesilmedi" },
@@ -540,6 +545,8 @@ function NavIcon({ tabKey, active, onBadge, color }) {
     React.createElement("circle", { cx: 12, cy: 8, r: 3.5 }), React.createElement("path", { d: "M5 20c0-3.5 3-6 7-6s7 2.5 7 6", strokeLinecap: "round" }));
   if (tabKey === "siparis") return React.createElement("svg", { style: s, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: sw },
     React.createElement("rect", { x: 4, y: 3, width: 16, height: 18, rx: 2 }), React.createElement("path", { d: "M8 8h8M8 12h5M8 16h8", strokeLinecap: "round" }), React.createElement("circle", { cx: 16.5, cy: 16, r: 0.6, fill: c }));
+  if (tabKey === "musteriler") return React.createElement("svg", { style: s, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: sw },
+    React.createElement("circle", { cx: 9, cy: 8, r: 3 }), React.createElement("path", { d: "M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6", strokeLinecap: "round" }), React.createElement("path", { d: "M16 8.5a2.5 2.5 0 1 0 0-5", strokeLinecap: "round" }), React.createElement("path", { d: "M18 14.2c1.7.6 3 2.1 3 5.8", strokeLinecap: "round" }));
   return React.createElement("svg", { style: s, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: sw },
     React.createElement("rect", { x: 4, y: 3, width: 16, height: 18, rx: 2 }), React.createElement("path", { d: "M8 8h8M8 12h8M8 16h5", strokeLinecap: "round" }));
 }
@@ -745,6 +752,22 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
     window.__filarisToastTimer = window.setTimeout(() => setToast(null), 2200);
   };
   const [orders, setOrders] = usePersistentState("orders", initialOrders);
+  const [customers, setCustomers] = usePersistentState("customers", initialCustomers);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [newCustomerOpen, setNewCustomerOpen] = useState(false);
+  // Müşteri kartlarında gösterilecek istatistikler — açıkça eklenmiş müşteri kaydı olmasa bile
+  // siparişlerde geçen her isim otomatik olarak listeye dahil edilir (kayıt dışı kalmasın diye).
+  const customerStats = useMemo(() => {
+    const known = customers.map(c => c.name);
+    const fromOrders = [...new Set(orders.map(o => o.customer))].filter(n => !known.includes(n));
+    const all = [...customers, ...fromOrders.map(n => ({ id: "auto-" + n, name: n, taxNo: "—", phone: "—", address: "—", since: "—" }))];
+    return all.map(c => {
+      const custOrders = orders.filter(o => o.customer === c.name);
+      const totalQty = custOrders.reduce((s, o) => s + o.qty, 0);
+      const activeCount = custOrders.filter(o => o.stage !== "Sevk edildi").length;
+      return { ...c, orderCount: custOrders.length, totalQty, activeCount, orders: custOrders };
+    }).sort((a, b) => b.orderCount - a.orderCount);
+  }, [customers, orders]);
   const [stockLayers, setStockLayers] = usePersistentState("stockLayers", initialStockLayers);
   const [newOrderOpen, setNewOrderOpen] = useState(false);
   const [newStockOpen, setNewStockOpen] = useState(false);
@@ -1672,7 +1695,7 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
         }
       },
         React.createElement(FormField, { name: "customer", label: "Müşteri", placeholder: "örn. Nova Tekstil", required: true, list: "cari-list" }),
-        React.createElement("datalist", { id: "cari-list" }, [...new Set(orders.map(o => o.customer))].map(c => React.createElement("option", { key: c, value: c }))),
+        React.createElement("datalist", { id: "cari-list" }, [...new Set([...orders.map(o => o.customer), ...customers.map(c => c.name)])].map(c => React.createElement("option", { key: c, value: c }))),
         React.createElement(FormField, { name: "product", label: "Ürün", placeholder: "örn. Ekru Dantel 140cm", required: true, list: "urun-list" }),
         React.createElement("datalist", { id: "urun-list" }, [...new Set([...products.map(p => p.name), ...orders.map(o => o.product)])].map(p => React.createElement("option", { key: p, value: p }))),
         React.createElement(FormField, { name: "qty", label: "Miktar (m)", type: "number", placeholder: "örn. 500", required: true }),
@@ -1694,6 +1717,88 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
             React.createElement("button", { onClick: () => setImportPreview(null), style: { flex: 1, background: "transparent", border: "1px solid " + COLORS.border, borderRadius: 8, padding: "12px 0", fontWeight: 600, fontSize: 13, cursor: "pointer", color: COLORS.inkDim } }, "İptal"),
             React.createElement("button", { onClick: confirmImport, style: { flex: 2, background: COLORS.accent, color: "#fff", border: "none", borderRadius: 8, padding: "12px 0", fontWeight: 700, fontSize: 14, cursor: "pointer" } }, "✓ Onayla ve İçe Aktar")
           )
+        )
+      ),
+      tab === "musteriler" && React.createElement("div", null,
+        !selectedCustomer && React.createElement(React.Fragment, null,
+          React.createElement("button", {
+            onClick: () => setNewCustomerOpen(true),
+            style: { width: "100%", background: COLORS.accent, color: "#fff", border: "none", borderRadius: 8, padding: "11px 0", fontWeight: 700, fontSize: 13, cursor: "pointer", marginBottom: 14 }
+          }, "+ Yeni Müşteri Ekle"),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            customerStats.map(c => React.createElement("button", {
+              key: c.id, onClick: () => setSelectedCustomer(c.name),
+              style: { textAlign: "left", background: COLORS.panel, border: "1px solid " + COLORS.border, borderRadius: 10, padding: 14, cursor: "pointer" }
+            },
+              React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start" } },
+                React.createElement("div", null,
+                  React.createElement("div", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 15 } }, c.name),
+                  React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginTop: 2 } }, c.address + (c.since !== "—" ? " · " + c.since + "'den beri" : ""))
+                ),
+                c.activeCount > 0 && React.createElement(Pill, { label: c.activeCount + " aktif", color: COLORS.accent })
+              ),
+              React.createElement("div", { style: { display: "flex", gap: 18, marginTop: 10, paddingTop: 10, borderTop: "1px solid " + COLORS.border } },
+                React.createElement("div", null,
+                  React.createElement("div", { style: { fontSize: 9.5, color: COLORS.inkDim, textTransform: "uppercase" } }, "Toplam Sipariş"),
+                  React.createElement("div", { style: { fontFamily: fontMono, fontWeight: 700, fontSize: 14, marginTop: 2 } }, c.orderCount)
+                ),
+                React.createElement("div", null,
+                  React.createElement("div", { style: { fontSize: 9.5, color: COLORS.inkDim, textTransform: "uppercase" } }, "Toplam Metraj"),
+                  React.createElement("div", { style: { fontFamily: fontMono, fontWeight: 700, fontSize: 14, marginTop: 2 } }, c.totalQty.toLocaleString("tr-TR") + " m")
+                )
+              )
+            ))
+          )
+        ),
+        selectedCustomer && (() => {
+          const c = customerStats.find(x => x.name === selectedCustomer);
+          if (!c) return null;
+          return React.createElement(React.Fragment, null,
+            React.createElement("button", { onClick: () => setSelectedCustomer(null), style: { background: "transparent", border: "none", color: COLORS.accent, fontWeight: 700, fontSize: 13, cursor: "pointer", padding: 0, marginBottom: 14 } }, "← Müşterilere Dön"),
+            React.createElement(Card, null,
+              React.createElement("div", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 17 } }, c.name),
+              React.createElement("div", { style: { fontSize: 12, color: COLORS.inkDim, marginTop: 4 } }, c.address),
+              React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 12, fontSize: 12 } },
+                React.createElement("div", null, React.createElement("span", { style: { color: COLORS.inkDim } }, "Vergi No: "), c.taxNo),
+                React.createElement("div", null, React.createElement("span", { style: { color: COLORS.inkDim } }, "Telefon: "), c.phone)
+              )
+            ),
+            React.createElement(SectionLabel, { count: c.orders.length }, "Sipariş Geçmişi"),
+            React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+              c.orders.map(o => {
+                const pct = Math.round((o.produced / o.qty) * 100);
+                const stageColor = o.stage === "Sevke hazır" || o.stage === "Sevk edildi" ? COLORS.ok : o.stage === "Bekliyor" ? COLORS.thread : COLORS.accent;
+                return React.createElement(Card, { key: o.id, accentLeft: stageColor },
+                  React.createElement("div", { style: { display: "flex", justifyContent: "space-between" } },
+                    React.createElement("div", null,
+                      React.createElement("div", { style: { fontFamily: fontMono, fontSize: 11, color: COLORS.accent } }, o.id),
+                      React.createElement("div", { style: { fontSize: 12.5, fontWeight: 600, marginTop: 2 } }, tc(o.product))
+                    ),
+                    React.createElement("div", { style: { textAlign: "right" } },
+                      React.createElement(Pill, { label: tc(o.stage), color: stageColor }),
+                      React.createElement("div", { style: { fontFamily: fontMono, fontSize: 11, color: COLORS.inkDim, marginTop: 4 } }, o.produced + "/" + o.qty + " m · %" + pct)
+                    )
+                  )
+                );
+              })
+            )
+          );
+        })(),
+        newCustomerOpen && React.createElement(FormModal, {
+          title: "Yeni Müşteri Ekle", submitLabel: "Kaydet", onClose: () => setNewCustomerOpen(false),
+          onSubmit: (e) => {
+            e.preventDefault();
+            const f = e.target;
+            if (!f.name.value.trim()) return;
+            setCustomers(prev => [...prev, { id: "M-" + Date.now(), name: f.name.value, taxNo: f.taxNo.value || "—", phone: f.phone.value || "—", address: f.address.value || "—", since: new Date().toLocaleDateString("tr-TR", { month: "short", year: "numeric" }) }]);
+            setNewCustomerOpen(false);
+            showToast("✓ Müşteri eklendi");
+          }
+        },
+          React.createElement(FormField, { name: "name", label: "Firma Adı", placeholder: "örn. Ege Konfeksiyon", required: true }),
+          React.createElement(FormField, { name: "taxNo", label: "Vergi Numarası", placeholder: "örn. 1234567890" }),
+          React.createElement(FormField, { name: "phone", label: "Telefon", placeholder: "örn. +90 212 000 00 00" }),
+          React.createElement(FormField, { name: "address", label: "Adres", placeholder: "örn. Merter, İstanbul" })
         )
       ),
       tab === "maliyet" && React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
@@ -2114,7 +2219,7 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
         type: "button",
         onClick: () => {
           if (window.confirm("Tüm demo verileri (siparişler, stok, fire/OEE kayıtları, ayarlar) sıfırlanıp başlangıç durumuna dönecek. Emin misin?")) {
-            ["companyInfo", "orders", "stockLayers", "shiftNotes", "wasteLogs", "machineLogs", "lang"].forEach(k => window.localStorage.removeItem("filaris_" + k));
+            ["companyInfo", "orders", "customers", "stockLayers", "shiftNotes", "wasteLogs", "machineLogs", "lang"].forEach(k => window.localStorage.removeItem("filaris_" + k));
             window.location.reload();
           }
         },
