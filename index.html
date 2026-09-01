@@ -10,10 +10,12 @@
 <link rel="manifest" href="manifest.json" />
 <style>
   html, body { margin: 0; overflow-x: hidden; max-width: 100%; }
-  /* Mikro-etkileşim: her butona basınca hafif küçülme + koyulaşma — "tıklamam işe yaradı" hissi */
-  button { transition: transform 0.08s ease, opacity 0.08s ease; }
-  button:active { transform: scale(0.96); opacity: 0.75; }
-  @media (hover: hover) { button:hover { filter: brightness(0.97); } }
+  /* Mikro-etkileşim: her butona basınca belirgin küçülme + koyulaşma — "tıklamam işe yaradı" hissi.
+     Sıra önemli: :active kuralı @media hover bloğundan SONRA gelmeli, aksi halde fare/trackpad'de
+     basılıyken hover kuralı (daha sonra tanımlandığı için) active'in filter değerini eziyor. */
+  button { transition: transform 0.08s ease, opacity 0.08s ease, filter 0.08s ease; -webkit-tap-highlight-color: transparent; }
+  @media (hover: hover) { button:hover { filter: brightness(0.96); } }
+  button:active { transform: scale(0.92); opacity: 0.65; filter: brightness(0.85); }
   * { box-sizing: border-box; }
 </style>
 </head>
@@ -540,6 +542,19 @@ function NavIcon({ tabKey, active, onBadge, color }) {
     React.createElement("rect", { x: 4, y: 3, width: 16, height: 18, rx: 2 }), React.createElement("path", { d: "M8 8h8M8 12h5M8 16h8", strokeLinecap: "round" }), React.createElement("circle", { cx: 16.5, cy: 16, r: 0.6, fill: c }));
   return React.createElement("svg", { style: s, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: sw },
     React.createElement("rect", { x: 4, y: 3, width: 16, height: 18, rx: 2 }), React.createElement("path", { d: "M8 8h8M8 12h8M8 16h5", strokeLinecap: "round" }));
+}
+function AnimatedBar({ pct, color }) {
+  // Aynı "sayfaya her girişte canlanma" mantığı — yatay ilerleme çubukları da
+  // %0'dan gerçek değere doluyor, tüm uygulamada tutarlı tek bir bileşenden.
+  const target = Math.max(0, Math.min(pct || 0, 100));
+  const [w, setW] = useState(0);
+  useEffect(() => {
+    setW(0);
+    let raf2;
+    const raf1 = requestAnimationFrame(() => { raf2 = requestAnimationFrame(() => setW(target)); });
+    return () => { cancelAnimationFrame(raf1); if (raf2) cancelAnimationFrame(raf2); };
+  }, [target]);
+  return React.createElement("div", { style: { width: w + "%", height: "100%", background: color, transition: "width 1.1s cubic-bezier(0.22,1,0.36,1)" } });
 }
 function Spool({ percent, color }) {
   // Sayfaya her girildiğinde "canlı güncelleniyor" hissi versin diye,
@@ -1213,7 +1228,7 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
                 )
               ),
               React.createElement("div", { style: { height: 5, borderRadius: 3, background: COLORS.panelAlt, overflow: "hidden", marginTop: 8 } },
-                React.createElement("div", { style: { width: Math.round(pm.pct * 100) + "%", height: "100%", background: riskColor } })
+                React.createElement(AnimatedBar, { pct: Math.round(pm.pct * 100), color: riskColor })
               )
             );
           })
@@ -1234,7 +1249,7 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
                 React.createElement("div", { style: { fontFamily: fontMono, fontWeight: 700, fontSize: 16, color: barColor } }, "OEE %" + pct)
               ),
               React.createElement("div", { style: { height: 6, borderRadius: 4, background: COLORS.panelAlt, overflow: "hidden", marginBottom: 8 } },
-                React.createElement("div", { style: { width: pct + "%", height: "100%", background: barColor } })
+                React.createElement(AnimatedBar, { pct, color: barColor })
               ),
               React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, fontSize: 10.5, color: COLORS.inkDim, textAlign: "center" } },
                 React.createElement("div", null, "Kullanılabilirlik", React.createElement("div", { style: { fontFamily: fontMono, fontWeight: 700, fontSize: 12.5, color: COLORS.ink, marginTop: 2 } }, "%" + Math.round(o.availabilityPct * 100))),
@@ -1303,7 +1318,7 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
             ),
             v.status !== "boşta" && React.createElement(React.Fragment, null,
               React.createElement("div", { style: { marginTop: 12, height: 6, background: COLORS.panelAlt, borderRadius: 999, overflow: "hidden", border: "1px solid " + COLORS.border } },
-                React.createElement("div", { style: { width: pct + "%", height: "100%", background: statusColor } })
+                React.createElement(AnimatedBar, { pct, color: statusColor })
               ),
               React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginTop: 6, fontFamily: fontMono, fontSize: 11, color: COLORS.inkDim } },
                 React.createElement("span", null, v.qty + "/" + v.capacity + " kg kazan doluluk"),
@@ -1426,7 +1441,7 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
                   )
                 ),
                 React.createElement("div", { style: { height: 5, background: COLORS.panelAlt, borderRadius: 999, overflow: "hidden", marginTop: 10, border: "1px solid " + COLORS.border } },
-                  React.createElement("div", { style: { width: pct + "%", height: "100%", background: low ? COLORS.alert : COLORS.ok } })
+                  React.createElement(AnimatedBar, { pct, color: low ? COLORS.alert : COLORS.ok })
                 )
               );
             })
@@ -1619,7 +1634,7 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
             ),
             React.createElement("div", { style: { marginTop: 10, display: "flex", alignItems: "center", gap: 10 } },
               React.createElement("div", { style: { flex: 1, height: 6, background: COLORS.panelAlt, borderRadius: 999, overflow: "hidden", border: "1px solid " + COLORS.border } },
-                React.createElement("div", { style: { width: Math.min(pct, 100) + "%", height: "100%", background: stageColor } })
+                React.createElement(AnimatedBar, { pct, color: stageColor })
               ),
               React.createElement("span", { style: { fontFamily: fontMono, fontSize: 12, color: COLORS.inkDim, whiteSpace: "nowrap" } }, o.produced + "/" + o.qty + " m")
             ),
