@@ -241,6 +241,73 @@ const initialCompanyInfo = {
   taxOffice: "Bursa Vergi Dairesi", taxNo: "1234567890", phone: "+90 224 000 00 00",
 };
 
+function buildVardiyaRaporuHtml(data) {
+  const { company, machines, wasteLogs, machineLogs, criticalStock, pendingOrders, shiftNotes, lang } = data;
+  const now = new Date();
+  const todayFire = wasteLogs.reduce((s, w) => s + w.qty, 0);
+  const todayDown = machineLogs.reduce((s, l) => s + l.hours, 0);
+  const totalProd = machines.reduce((s, m) => s + m.produced, 0);
+  const rows = (arr) => arr.length ? arr : null;
+  return `
+  <html><head><meta charset="utf-8"><title>Vardiya Devir Raporu</title>
+  <style>
+    body{font-family:'Segoe UI',Arial,sans-serif;color:#1B1B1F;padding:32px;max-width:760px;margin:0 auto;}
+    .head{border-bottom:3px solid #0EA5B7;padding-bottom:14px;margin-bottom:20px;}
+    h1{font-size:20px;margin:0 0 2px;} .sub{color:#6B6B72;font-size:12px;}
+    h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:#0EA5B7;border-bottom:1px solid #E1E1E4;padding-bottom:6px;margin-top:24px;}
+    .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px;}
+    .stat{background:#F7F9F9;border-radius:8px;padding:10px;}
+    .stat .n{font-size:19px;font-weight:700;} .stat .l{font-size:9.5px;color:#6B6B72;text-transform:uppercase;margin-top:2px;}
+    table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;}
+    th{text-align:left;background:#F3F3F3;padding:6px 8px;font-size:10.5px;text-transform:uppercase;color:#6B6B72;}
+    td{padding:7px 8px;border-bottom:1px solid #F0F0F2;}
+    .empty{font-size:11.5px;color:#9096A0;font-style:italic;margin-top:8px;}
+    .foot{margin-top:30px;font-size:10px;color:#999;border-top:1px solid #eee;padding-top:10px;}
+    @media (max-width:480px){ body{padding:16px;} .stat-grid{grid-template-columns:1fr 1fr;} }
+  </style></head><body>
+    <div class="head">
+      <h1>${company.name} — Vardiya Devir Raporu</h1>
+      <div class="sub">${now.toLocaleDateString("tr-TR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })} · Oluşturulma saati: ${now.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}</div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat"><div class="n">${totalProd.toLocaleString("tr-TR")} m</div><div class="l">Bugünkü Üretim</div></div>
+      <div class="stat"><div class="n">${todayFire} m</div><div class="l">Toplam Fire</div></div>
+      <div class="stat"><div class="n">${todayDown.toFixed(1)} sa</div><div class="l">Duruş / Arıza</div></div>
+      <div class="stat"><div class="n">${criticalStock.length}</div><div class="l">Kritik Stok Kalemi</div></div>
+    </div>
+
+    <h2>Makine Durumu</h2>
+    <table><thead><tr><th>Makine</th><th>Durum</th><th>Üretim</th></tr></thead><tbody>
+      ${machines.map(m => `<tr><td>${m.name}</td><td>${m.status}</td><td>${m.produced}/${m.target} m</td></tr>`).join("")}
+    </tbody></table>
+
+    <h2>Bugünkü Fire / Kalite Hataları</h2>
+    ${rows(wasteLogs) ? `<table><thead><tr><th>Makine</th><th>Hata Türü</th><th>Lot</th><th>Miktar</th></tr></thead><tbody>
+      ${wasteLogs.map(w => `<tr><td>${w.machine}</td><td>${w.type}</td><td>${w.lot}</td><td>${w.qty} m</td></tr>`).join("")}
+    </tbody></table>` : `<div class="empty">Bugün fire kaydı girilmedi.</div>`}
+
+    <h2>Duruş / Arıza Kayıtları</h2>
+    ${rows(machineLogs) ? `<table><thead><tr><th>Makine</th><th>Tür</th><th>Neden</th><th>Süre</th></tr></thead><tbody>
+      ${machineLogs.map(l => `<tr><td>${l.machine}</td><td>${l.type}</td><td>${l.reason}</td><td>${l.hours} sa</td></tr>`).join("")}
+    </tbody></table>` : `<div class="empty">Bugün duruş/arıza kaydı girilmedi.</div>`}
+
+    <h2>Kritik Stok Uyarıları</h2>
+    ${rows(criticalStock) ? `<table><thead><tr><th>Kalem</th><th>Lot</th><th>Mevcut</th><th>Min.</th></tr></thead><tbody>
+      ${criticalStock.map(s => `<tr><td>${s.name}</td><td>${s.lot}</td><td>${s.qty} ${s.unit}</td><td>${s.min} ${s.unit}</td></tr>`).join("")}
+    </tbody></table>` : `<div class="empty">Kritik seviyede stok yok.</div>`}
+
+    <h2>Bekleyen / Yaklaşan Siparişler</h2>
+    ${rows(pendingOrders) ? `<table><thead><tr><th>Sipariş</th><th>Müşteri</th><th>Teslim</th><th>İlerleme</th></tr></thead><tbody>
+      ${pendingOrders.map(o => `<tr><td>${o.id}</td><td>${o.customer}</td><td>${o.due}</td><td>${o.produced}/${o.qty} m</td></tr>`).join("")}
+    </tbody></table>` : `<div class="empty">Bekleyen sipariş yok.</div>`}
+
+    <h2>Vardiya Notları (Son ${Math.min(shiftNotes.length, 5)})</h2>
+    ${rows(shiftNotes.slice(0, 5)) ? shiftNotes.slice(0, 5).map(n => `<div style="margin-top:8px;padding:8px 10px;background:#F7F9F9;border-radius:6px;"><b>${n.person}</b> <span style="color:#9096A0;font-size:10.5px;">· ${n.time}</span><div style="margin-top:3px;font-size:12px;">${n.text}</div></div>`).join("") : `<div class="empty">Not girilmedi.</div>`}
+
+    <div class="foot">Bu rapor Filaris Texnet sistemi tarafından o an sistemdeki verilerden otomatik oluşturulmuştur — demo verisidir.</div>
+  </body></html>`;
+}
 function buildIrsaliyeHtml(order, irsaliyeNo, company) {
   const today = new Date().toLocaleDateString("tr-TR");
   return `
@@ -2164,6 +2231,16 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
       })(),
       tab === "vardiya" && React.createElement("div", null,
         React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginBottom: 12, lineHeight: 1.4 } }, "Vardiya değişiminde sözlü aktarım yerine burada not bırak — gelen vardiya, aşağı inip sormak yerine buradan okusun."),
+        React.createElement("button", {
+          onClick: () => {
+            const criticalStock = [...stockLayers.iplik, ...stockLayers.mamul].filter(s => s.qty < s.min);
+            const pendingOrders = orders.filter(o => o.stage !== "Sevke hazır" && o.stage !== "Sevk edildi");
+            const html = buildVardiyaRaporuHtml({ company: companyInfo, machines, wasteLogs, machineLogs, criticalStock, pendingOrders, shiftNotes, lang });
+            const w = window.open("", "_blank");
+            if (w) { w.document.write(html); w.document.close(); setTimeout(() => w.print(), 400); }
+          },
+          style: { width: "100%", background: "transparent", border: "1px solid " + COLORS.accent, color: COLORS.accent, borderRadius: 8, padding: "12px 0", fontWeight: 700, fontSize: 13, cursor: "pointer", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }
+        }, "📋 Vardiya Devir Raporu Oluştur (Yazdır / PDF)"),
         React.createElement("form", {
           onSubmit: (e) => {
             e.preventDefault();
