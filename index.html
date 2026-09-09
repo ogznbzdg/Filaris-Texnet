@@ -24,12 +24,39 @@
 
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
-<script type="text/babel" data-type="module">
+<!-- Kod tamamen React.createElement(...) ile yazıldı, gerçek JSX kullanılmadı —
+     bu yüzden Babel'e (derleme adımına) hiç ihtiyaç yok. Düz <script> olarak,
+     tarayıcı tarafından doğrudan çalıştırılıyor. Bu, sayfa açılışını belirgin
+     şekilde hızlandırıyor (özellikle orta/düşük seviye telefonlarda).
+
+     jsQR (252KB), xlsx (864KB!) ve Tesseract (OCR, en ağırı) artık burada
+     baştan yüklenmiyor — her ikisi de sadece gerçekten kullanıldıkları anda
+     (kamera taraması başlatılınca / Excel işlemi yapılınca / OCR fotoğrafı
+     seçilince) indiriliyor. Çoğu ziyaretçi bu üçünü hiç kullanmayacağı için
+     bu, açılış süresini belirgin şekilde kısaltıyor. -->
+<script>
+const _loadedScripts = {};
+function loadScript(src) {
+  if (_loadedScripts[src]) return _loadedScripts[src];
+  _loadedScripts[src] = new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = src;
+    s.onload = () => resolve();
+    s.onerror = () => { delete _loadedScripts[src]; reject(new Error("Kütüphane yüklenemedi: " + src)); };
+    document.head.appendChild(s);
+  });
+  return _loadedScripts[src];
+}
+function ensureXLSX() {
+  return window.XLSX ? Promise.resolve() : loadScript("https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js");
+}
+function ensureJsQR() {
+  return window.jsQR ? Promise.resolve() : loadScript("https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js");
+}
+function ensureTesseract() {
+  return window.Tesseract ? Promise.resolve() : loadScript("https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js");
+}
 const { useState, useMemo, useRef, useEffect, useLayoutEffect } = React;
 
 // Demo için basit kalıcılık: gerçek bir veritabanı değil, ama sayfa yenilendiğinde
@@ -53,7 +80,8 @@ function usePersistentState(key, initialValue) {
 
 const EXCEL_TEMPLATE_COLUMNS = ["Sipariş No", "Müşteri", "Ürün", "Miktar (m)", "Teslim Tarihi", "İrsaliye No", "Fatura No", "GSM (g/m²)", "Genişlik (cm)", "İçerik"];
 
-function downloadExcelTemplate() {
+async function downloadExcelTemplate() {
+  await ensureXLSX();
   const sample = [{
     "Sipariş No": "SP-1060", "Müşteri": "Örnek Müşteri A.Ş.", "Ürün": "Ekru Dantel 140cm",
     "Miktar (m)": 500, "Teslim Tarihi": "15 Ağu", "İrsaliye No": "", "Fatura No": "",
@@ -65,7 +93,13 @@ function downloadExcelTemplate() {
   XLSX.writeFile(wb, "filaris-siparis-sablonu.xlsx");
 }
 
-function parseExcelFile(file, onParsed, onError) {
+async function parseExcelFile(file, onParsed, onError) {
+  try {
+    await ensureXLSX();
+  } catch (e) {
+    onError("Excel kütüphanesi yüklenemedi. İnternet bağlantını kontrol edip tekrar dene.");
+    return;
+  }
   const reader = new FileReader();
   reader.onload = (e) => {
     try {
@@ -997,6 +1031,12 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
   const startCameraScan = async () => {
     setScanError(""); setBarkodResult(null);
     try {
+      await ensureJsQR();
+    } catch (e) {
+      setScanError("Tarama motoru yüklenemedi. İnternet bağlantını kontrol edip tekrar dene.");
+      return;
+    }
+    try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
       streamRef.current = stream;
       setScanning(true);
@@ -1075,7 +1115,8 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
 
   const STOCK_TEMPLATE_COLUMNS = ["Tür", "Kalem Adı", "Lot No", "Miktar", "Birim", "Min Stok", "Birim Fiyat (USD)", "Kaynak/Reçete"];
 
-  const downloadStockExcelTemplate = () => {
+  const downloadStockExcelTemplate = async () => {
+    await ensureXLSX();
     const sample = [
       { "Tür": "iplik", "Kalem Adı": "Polyester İplik (Ecru)", "Lot No": "IP-580", "Miktar": 200, "Birim": "kg", "Min Stok": 100, "Birim Fiyat (USD)": 3.0, "Kaynak/Reçete": "" },
       { "Tür": "hamKumas", "Kalem Adı": "Ham Dantel 130cm", "Lot No": "L-2220", "Miktar": 300, "Birim": "m", "Min Stok": "", "Birim Fiyat (USD)": "", "Kaynak/Reçete": "Raşel 1" },
@@ -1131,8 +1172,14 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
     const file = e.target.files[0];
     if (!file) return;
     setOcrError(""); setOcrResult(null); setOcrRawText("");
-    if (!window.Tesseract) { setOcrError("OCR motoru henüz yüklenmedi, birkaç saniye bekleyip tekrar dene."); return; }
     setOcrBusy(true);
+    try {
+      await ensureTesseract();
+    } catch (err) {
+      setOcrError("OCR motoru yüklenemedi. İnternet bağlantını kontrol edip tekrar dene.");
+      setOcrBusy(false);
+      return;
+    }
     try {
       const { data } = await window.Tesseract.recognize(file, "tur+eng");
       setOcrRawText(data.text);
@@ -1225,8 +1272,45 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
         const activeVats = dyeVats.filter(v => v.status !== "boşta").length;
         const pendingOrders = orders.filter(o => o.stage !== "Sevke hazır" && o.stage !== "Sevk edildi");
         const criticalTotal = criticalRaw.length + criticalMamul.length;
+
+        // "Dikkat Gerekenler" — dashboard'un salt bilgi göstermek yerine, sistemin o an
+        // gerçekten dikkat istediği noktaları öne çıkarıp ilgili ekrana yönlendirdiği bölüm.
+        const avgOEE = machines.length ? machines.reduce((s, m) => s + computeOEE(m).oee, 0) / machines.length : 0;
+        const todayDownMin = machineLogs.reduce((s, l) => s + l.hours, 0) * 60;
+        const arizaCount = machineLogs.filter(l => l.type === "Arıza").length;
+        const totalFireM = wasteLogs.reduce((s, w) => s + w.qty, 0);
+        const fireOrani = totalToday > 0 ? (totalFireM / (totalToday + totalFireM)) * 100 : 0;
+        const riskyOrders = orders.filter(o => o.stage !== "Sevke hazır" && o.stage !== "Sevk edildi" && (o.produced / o.qty) < 0.3);
+
+        const alerts = [];
+        machineLogs.filter(l => l.type === "Arıza").forEach(l =>
+          alerts.push({ text: l.machine + ": bugün " + Math.round(l.hours * 60) + " dk arıza (" + l.reason + ")", tab: "uretim", level: "alert" }));
+        riskyOrders.forEach(o =>
+          alerts.push({ text: o.id + " (" + o.customer + "): teslim " + o.due + ", üretim henüz %" + Math.round((o.produced / o.qty) * 100), tab: "siparis", level: "alert" }));
+        if (criticalTotal > 0)
+          alerts.push({ text: criticalTotal + " hammadde/mamul kalemi kritik stok seviyesinde", tab: "stok", level: "alert" });
+        if (avgOEE > 0 && avgOEE < 0.65)
+          alerts.push({ text: "Ortalama OEE %" + Math.round(avgOEE * 100) + " — sektör hedefi %85 ve üzeri", tab: "uretim", level: "warn" });
+        if (wasteLogs.length > 0 && fireOrani > 3)
+          alerts.push({ text: "Bugünkü fire oranı %" + fireOrani.toFixed(1) + " — normalin üzerinde", tab: "fire", level: "warn" });
+
         return React.createElement("div", null,
           React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginBottom: 12 } }, "Bugün · " + new Date().toLocaleDateString("tr-TR", { day: "2-digit", month: "long", year: "numeric" })),
+
+          alerts.length > 0 && React.createElement(React.Fragment, null,
+            React.createElement(SectionLabel, { count: alerts.length }, "⚠ Dikkat Gerekenler"),
+            React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 6, marginBottom: 16 } },
+              alerts.map((a, i) => React.createElement("button", {
+                key: i, onClick: () => goTab(a.tab),
+                style: { textAlign: "left", display: "flex", alignItems: "center", gap: 10, background: (a.level === "alert" ? COLORS.alert : COLORS.thread) + "14", border: "1px solid " + (a.level === "alert" ? COLORS.alert : COLORS.thread) + "40", borderRadius: 8, padding: "10px 12px", cursor: "pointer" }
+              },
+                React.createElement("span", { style: { fontSize: 14, flexShrink: 0 } }, a.level === "alert" ? "🔴" : "🟡"),
+                React.createElement("span", { style: { fontSize: 12, color: COLORS.ink, flex: 1 } }, a.text),
+                React.createElement("span", { style: { fontSize: 13, color: COLORS.inkDim } }, "→")
+              ))
+            )
+          ),
+
           React.createElement("div", { style: { display: "grid", gridTemplateColumns: isDesktop ? "1fr 1fr 1fr" : "1fr 1fr", gap: 10 } },
             canSee("uretim") && React.createElement(StatCard, { label: t("stat_today_prod"), value: totalToday.toLocaleString("tr-TR") + " m", sub: runningCount + " " + t("running"), color: COLORS.ok, icon: "uretim", onClick: () => goTab("uretim") }),
             canSee("uretim") && React.createElement(StatCard, { label: t("stat_machine"), value: runningCount + "/" + machines.length, sub: idleCount + " " + t("idle"), color: COLORS.accent, icon: "uretim", onClick: () => goTab("uretim") }),
@@ -1234,6 +1318,16 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
             canSee("boyahane") && React.createElement(StatCard, { label: t("stat_boyahane"), value: activeVats + "/" + dyeVats.length, sub: "kazan aktif", color: COLORS.accent, icon: "boyahane", onClick: () => goTab("boyahane") }),
             canSee("siparis") && React.createElement(StatCard, { label: t("stat_pending_order"), value: pendingOrders.length, sub: "sevke hazır değil", color: pendingOrders.length > 0 ? COLORS.alert : COLORS.ok, icon: "siparis", onClick: () => goTab("siparis") }),
             canSee("kalite") && React.createElement(StatCard, { label: t("stat_cert"), value: certOkGlobal ? "✓ Tamam" : "✕ Eksik", sub: "SP-1042 · RCS/GRS", color: certOkGlobal ? COLORS.ok : COLORS.alert, icon: "kalite", onClick: () => goTab("kalite") })
+          ),
+
+          canSee("uretim") && React.createElement(React.Fragment, null,
+            React.createElement(SectionLabel, null, "Fabrika Sağlığı"),
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: isDesktop ? "1fr 1fr 1fr 1fr" : "1fr 1fr", gap: 10 } },
+              React.createElement(StatCard, { label: "Ortalama OEE", value: "%" + Math.round(avgOEE * 100), sub: avgOEE >= 0.85 ? "hedefte" : "hedefin altında", color: avgOEE >= 0.85 ? COLORS.ok : avgOEE >= 0.65 ? COLORS.thread : COLORS.alert, icon: "uretim", onClick: () => goTab("uretim") }),
+              React.createElement(StatCard, { label: "Toplam Duruş", value: Math.round(todayDownMin) + " dk", sub: arizaCount + " arıza kaydı", color: arizaCount > 0 ? COLORS.alert : COLORS.ok, icon: "uretim", onClick: () => goTab("uretim") }),
+              React.createElement(StatCard, { label: "Fire Oranı", value: "%" + fireOrani.toFixed(1), sub: totalFireM + " m fire", color: fireOrani > 3 ? COLORS.alert : COLORS.ok, icon: "fire", onClick: () => goTab("fire") }),
+              React.createElement(StatCard, { label: "Kritik Sipariş", value: riskyOrders.length, sub: "%30 altı ilerleme", color: riskyOrders.length > 0 ? COLORS.alert : COLORS.ok, icon: "siparis", onClick: () => goTab("siparis") })
+            )
           ),
           canSee("uretim") && React.createElement(React.Fragment, null,
             React.createElement(SectionLabel, null, t("sec_trend")),

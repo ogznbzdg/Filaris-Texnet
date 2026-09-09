@@ -3,7 +3,7 @@
 // İlk açılışta internet gerekir (kütüphaneler indirilip önbelleğe alınır);
 // sonraki açılışlarda internet olmasa bile uygulama ve tüm kütüphaneler önbellekten yüklenir.
 
-const CACHE_NAME = "filaris-texnet-v7";
+const CACHE_NAME = "filaris-texnet-v10";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -11,7 +11,6 @@ const APP_SHELL = [
   "./icon.svg",
   "https://unpkg.com/react@18/umd/react.production.min.js",
   "https://unpkg.com/react-dom@18/umd/react-dom.production.min.js",
-  "https://unpkg.com/@babel/standalone/babel.min.js",
   "https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js",
   "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js",
   "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js",
