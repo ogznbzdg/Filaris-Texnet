@@ -802,8 +802,11 @@ function StatCard({ label, value, sub, color, onClick, icon }) {
     sub && React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginTop: 2 } }, sub)
   );
 }
-function Card({ children, accentLeft }) {
-  return React.createElement("div", { style: { background: COLORS.panel, border: "1px solid " + COLORS.border, borderLeft: "3px solid " + (accentLeft || COLORS.border), borderRadius: 8, padding: 14, boxShadow: COLORS.shadow } }, children);
+function Card({ children, accentLeft, onClick }) {
+  return React.createElement(onClick ? "button" : "div", {
+    onClick,
+    style: { display: "block", width: "100%", textAlign: "left", background: COLORS.panel, border: "1px solid " + COLORS.border, borderLeft: "3px solid " + (accentLeft || COLORS.border), borderRadius: 8, padding: 14, boxShadow: COLORS.shadow, cursor: onClick ? "pointer" : "default", fontFamily: "inherit" }
+  }, children);
 }
 function SectionLabel({ children, count }) {
   return React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", margin: "18px 2px 8px" } },
@@ -855,6 +858,8 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
   const [orders, setOrders] = usePersistentState("orders", initialOrders);
   const [customers, setCustomers] = usePersistentState("customers", initialCustomers);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [selectedMachine, setSelectedMachine] = useState(null);
+  const [machineDetailTab, setMachineDetailTab] = useState("genel");
   const [newCustomerOpen, setNewCustomerOpen] = useState(false);
   // Müşteri kartlarında gösterilecek istatistikler — açıkça eklenmiş müşteri kaydı olmasa bile
   // siparişlerde geçen her isim otomatik olarak listeye dahil edilir (kayıt dışı kalmasın diye).
@@ -1362,14 +1367,123 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
           )
         );
       })(),
-      tab === "uretim" && React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
+      tab === "uretim" && selectedMachine && (() => {
+        const m = machines.find(x => x.id === selectedMachine);
+        if (!m) { setSelectedMachine(null); return null; }
+        const oee = computeOEE(m);
+        const pm = predictMaintenance(m);
+        const pct = Math.min(100, Math.round((m.produced / (m.target || 1)) * 100));
+        const machineFires = wasteLogs.filter(w => w.machine === m.name);
+        const machineStops = machineLogs.filter(l => l.machine === m.name && l.type === "Duruş (Planlı)");
+        const machineArizas = machineLogs.filter(l => l.machine === m.name && l.type === "Arıza");
+        const operators = [...new Set(machineFires.map(w => w.operator).filter(o => o && o !== "—"))];
+        const timeline = [
+          ...machineStops.map(l => ({ time: l.time, text: "Duruş (Planlı) — " + l.reason, kind: "Duruş" })),
+          ...machineArizas.map(l => ({ time: l.time, text: "Arıza — " + l.reason, kind: "Arıza" })),
+          ...machineFires.map(w => ({ time: w.time, text: w.type + " — Lot " + w.lot + " (" + w.qty + " m)", kind: "Fire" })),
+        ].sort((a, b) => (a.time > b.time ? 1 : -1));
+        const detailTabs = [["genel", "Genel"], ["uretim", "Üretim"], ["duruslar", "Duruşlar"], ["arizalar", "Arızalar"], ["bakim", "Bakım"], ["kalite", "Kalite"], ["operator", "Operatör"], ["gecmis", "Geçmiş"]];
+        return React.createElement("div", null,
+          React.createElement("button", { onClick: () => setSelectedMachine(null), style: { background: "transparent", border: "none", color: COLORS.accent, fontWeight: 700, fontSize: 13, cursor: "pointer", padding: 0, marginBottom: 12 } }, "← Makinelere Dön"),
+          React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 } },
+            React.createElement("div", null,
+              React.createElement("div", { style: { fontFamily: fontDisplay, fontWeight: 700, fontSize: 19 } }, m.name),
+              React.createElement("div", { style: { fontSize: 11.5, color: COLORS.inkDim, marginTop: 2, fontFamily: fontMono } }, m.id)
+            ),
+            React.createElement(Pill, { label: tc(m.status), color: m.status === "boşta" ? COLORS.inkDim : m.status === "tamamlandı" ? COLORS.accent : COLORS.ok })
+          ),
+          React.createElement("div", { style: { display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4, marginBottom: 14 } },
+            detailTabs.map(([k, l]) => React.createElement("button", {
+              key: k, onClick: () => setMachineDetailTab(k),
+              style: { flex: "0 0 auto", padding: "7px 13px", borderRadius: 999, border: "1px solid " + (machineDetailTab === k ? COLORS.accent : COLORS.border), background: machineDetailTab === k ? COLORS.accent : "transparent", color: machineDetailTab === k ? "#fff" : COLORS.inkDim, fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }
+            }, l))
+          ),
+          machineDetailTab === "genel" && React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
+            React.createElement(Card, null,
+              React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 16 } },
+                React.createElement(Spool, { percent: pct, color: pct >= 100 ? COLORS.accent : COLORS.ok }),
+                React.createElement("div", { style: { flex: 1 } },
+                  React.createElement("div", { style: { fontFamily: fontMono, fontSize: 20, fontWeight: 700 } }, m.produced + " / " + m.target + " m"),
+                  React.createElement("div", { style: { fontSize: 11.5, color: COLORS.inkDim, marginTop: 2 } }, "Sipariş " + m.order + " · Lot " + m.lot),
+                  React.createElement("div", { style: { fontSize: 11.5, color: COLORS.inkDim, marginTop: 2 } }, m.speedMPerMin + " m/dk · " + m.hoursToday + " sa çalışma")
+                )
+              )
+            ),
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 } },
+              React.createElement(Card, null, React.createElement("div", { style: { fontSize: 9.5, color: COLORS.inkDim, textTransform: "uppercase" } }, "Kullanılabilirlik"), React.createElement("div", { style: { fontFamily: fontMono, fontWeight: 700, fontSize: 16, marginTop: 4 } }, "%" + Math.round(oee.availabilityPct * 100))),
+              React.createElement(Card, null, React.createElement("div", { style: { fontSize: 9.5, color: COLORS.inkDim, textTransform: "uppercase" } }, "Performans"), React.createElement("div", { style: { fontFamily: fontMono, fontWeight: 700, fontSize: 16, marginTop: 4 } }, "%" + Math.round(oee.performancePct * 100))),
+              React.createElement(Card, null, React.createElement("div", { style: { fontSize: 9.5, color: COLORS.inkDim, textTransform: "uppercase" } }, "Kalite"), React.createElement("div", { style: { fontFamily: fontMono, fontWeight: 700, fontSize: 16, marginTop: 4 } }, "%" + Math.round(oee.qualityPct * 100)))
+            ),
+            React.createElement(Card, { accentLeft: COLORS.accent },
+              React.createElement("div", { style: { fontSize: 9.5, color: COLORS.inkDim, textTransform: "uppercase" } }, "OEE (Genel Verimlilik)"),
+              React.createElement("div", { style: { fontFamily: fontMono, fontWeight: 700, fontSize: 24, marginTop: 4, color: COLORS.accent } }, "%" + Math.round(oee.oee * 100))
+            )
+          ),
+          machineDetailTab === "uretim" && React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
+            React.createElement(Card, null,
+              React.createElement("div", { style: { fontSize: 12, color: COLORS.inkDim, lineHeight: 1.5 } }, "Bugünkü üretim: ", React.createElement("b", { style: { color: COLORS.ink } }, m.produced + " m"), " / hedef ", m.target + " m (%" + pct + ")"),
+              React.createElement("div", { style: { fontSize: 12, color: COLORS.inkDim, marginTop: 6 } }, "Hız: ", React.createElement("b", { style: { color: COLORS.ink } }, m.speedMPerMin + " m/dk")),
+              React.createElement("div", { style: { fontSize: 12, color: COLORS.inkDim, marginTop: 6 } }, "Çalışma süresi: ", React.createElement("b", { style: { color: COLORS.ink } }, m.hoursToday + " saat"))
+            ),
+            React.createElement("div", { style: { fontSize: 10.5, color: COLORS.inkDim, fontStyle: "italic" } }, "Saatlik üretim kırılımı gerçek sisteme (veritabanı) geçince eklenecek — şu an günlük toplam gösteriliyor.")
+          ),
+          machineDetailTab === "duruslar" && React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            machineStops.length ? machineStops.map(l => React.createElement(Card, { key: l.id, accentLeft: COLORS.thread },
+              React.createElement("div", { style: { display: "flex", justifyContent: "space-between" } },
+                React.createElement("div", null, React.createElement("div", { style: { fontSize: 12.5, fontWeight: 700 } }, l.reason), React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginTop: 2 } }, l.time)),
+                React.createElement("div", { style: { fontFamily: fontMono, fontWeight: 700 } }, l.hours + " sa")
+              )
+            )) : React.createElement("div", { style: { fontSize: 12, color: COLORS.inkDim, fontStyle: "italic" } }, "Bugün duruş kaydı yok.")
+          ),
+          machineDetailTab === "arizalar" && React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            machineArizas.length ? machineArizas.map(l => React.createElement(Card, { key: l.id, accentLeft: COLORS.alert },
+              React.createElement("div", { style: { display: "flex", justifyContent: "space-between" } },
+                React.createElement("div", null, React.createElement("div", { style: { fontSize: 12.5, fontWeight: 700 } }, l.reason), React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginTop: 2 } }, l.time)),
+                React.createElement("div", { style: { fontFamily: fontMono, fontWeight: 700, color: COLORS.alert } }, l.hours + " sa")
+              )
+            )) : React.createElement("div", { style: { fontSize: 12, color: COLORS.inkDim, fontStyle: "italic" } }, "Bugün arıza kaydı yok.")
+          ),
+          machineDetailTab === "bakim" && React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
+            React.createElement(Card, { accentLeft: pm.risk === "yüksek" ? COLORS.alert : pm.risk === "orta" ? COLORS.thread : COLORS.ok },
+              React.createElement("div", { style: { fontSize: 13, fontWeight: 700 } }, pm.risk === "yüksek" ? "Yakında bakım gerekebilir" : pm.risk === "orta" ? "Takip edilmeli" : "Sorun yok"),
+              React.createElement("div", { style: { fontSize: 11.5, color: COLORS.inkDim, marginTop: 4 } }, "Bakım aralığının %" + Math.round(pm.pct * 100) + "'i dolu · ~" + pm.remaining + " saat kaldı"),
+              React.createElement("div", { style: { height: 6, borderRadius: 3, background: COLORS.panelAlt, overflow: "hidden", marginTop: 8 } },
+                React.createElement(AnimatedBar, { pct: Math.round(pm.pct * 100), color: pm.risk === "yüksek" ? COLORS.alert : pm.risk === "orta" ? COLORS.thread : COLORS.ok })
+              )
+            )
+          ),
+          machineDetailTab === "kalite" && React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            machineFires.length ? machineFires.map(w => React.createElement(Card, { key: w.id, accentLeft: COLORS.alert },
+              React.createElement("div", { style: { display: "flex", justifyContent: "space-between" } },
+                React.createElement("div", null, React.createElement("div", { style: { fontSize: 12.5, fontWeight: 700 } }, w.type), React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginTop: 2 } }, "Lot " + w.lot + " · " + w.operator + " · " + w.time)),
+                React.createElement("div", { style: { fontFamily: fontMono, fontWeight: 700, color: COLORS.alert } }, w.qty + " m")
+              )
+            )) : React.createElement("div", { style: { fontSize: 12, color: COLORS.inkDim, fontStyle: "italic" } }, "Bu makinede bugün kalite/fire kaydı yok.")
+          ),
+          machineDetailTab === "operator" && React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            operators.length ? operators.map(op => React.createElement(Card, { key: op },
+              React.createElement("div", { style: { fontSize: 13, fontWeight: 700 } }, op),
+              React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, marginTop: 2 } }, machineFires.filter(w => w.operator === op).length + " kayıt bugün")
+            )) : React.createElement("div", { style: { fontSize: 12, color: COLORS.inkDim, fontStyle: "italic" } }, "Bugün bu makinede kayıt giren operatör yok.")
+          ),
+          machineDetailTab === "gecmis" && React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            timeline.length ? timeline.map((e, i) => React.createElement(Card, { key: i, accentLeft: e.kind === "Arıza" ? COLORS.alert : e.kind === "Duruş" ? COLORS.thread : COLORS.dye },
+              React.createElement("div", { style: { display: "flex", justifyContent: "space-between" } },
+                React.createElement("div", { style: { fontSize: 12, color: COLORS.ink } }, e.text),
+                React.createElement("div", { style: { fontSize: 11, color: COLORS.inkDim, fontFamily: fontMono } }, e.time)
+              )
+            )) : React.createElement("div", { style: { fontSize: 12, color: COLORS.inkDim, fontStyle: "italic" } }, "Bugün için kayıtlı geçmiş yok.")
+          )
+        );
+      })(),
+      tab === "uretim" && !selectedMachine && React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
         machines.map(m => {
           const pct = m.target ? Math.round((m.produced / m.target) * 100) : 0;
           const color = m.status === "boşta" ? COLORS.inkDim : m.status === "tamamlandı" ? COLORS.accent : COLORS.ok;
           const theoretical = m.speedMPerMin * 60 * m.hoursToday;
           const efficiency = theoretical > 0 ? Math.round((m.produced / theoretical) * 100) : null;
           const dailyForecast = m.speedMPerMin > 0 && efficiency ? Math.round(m.speedMPerMin * 60 * 20 * (efficiency / 100)) : null;
-          return React.createElement(Card, { key: m.id, accentLeft: color },
+          return React.createElement(Card, { key: m.id, accentLeft: color, onClick: () => { setSelectedMachine(m.id); setMachineDetailTab("genel"); } },
             React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 14 } },
               React.createElement("div", { style: { position: "relative", width: 60, height: 60, flexShrink: 0 } },
                 React.createElement(Spool, { percent: pct, color }),
@@ -1391,7 +1505,7 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
           );
         })
       ),
-      tab === "uretim" && React.createElement(React.Fragment, null,
+      tab === "uretim" && !selectedMachine && React.createElement(React.Fragment, null,
         React.createElement(SectionLabel, null, "Kestirimci Bakım"),
         React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 } },
           machines.filter(m => m.maintenanceIntervalHours).map(m => {
