@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Filaris Texnet</title>
+<title>Filaris Texnet — Konfeksiyon & Kumaş Yönetim Sistemi</title>
 <meta name="theme-color" content="#0EA5B7" />
 <link rel="icon" type="image/svg+xml" href="icon.svg" />
 <link rel="apple-touch-icon" href="icon.svg" />
@@ -18,12 +18,468 @@
   button:active { transform: scale(0.92); opacity: 0.65; filter: brightness(0.85); }
   * { box-sizing: border-box; }
 </style>
+<style id="konf-css">
+
+#konf-root{font-family:'Segoe UI','Inter',system-ui,sans-serif;background:#f1f5f9;color:#0f172a;line-height:1.5;-webkit-font-smoothing:antialiased}
+#konf-root *,#konf-root ::before,#konf-root ::after{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}
+#konf-root h1,#konf-root h2,#konf-root h3,#konf-root h4,#konf-root p,#konf-root ul,#konf-root ol,#konf-root figure{margin:0}
+#konf-root ul,#konf-root ol{list-style:none;padding:0}
+#konf-root button,#konf-root input,#konf-root select,#konf-root textarea{font:inherit;color:inherit;margin:0;background-color:transparent}
+#konf-root button{cursor:pointer;background-image:none}
+#konf-root input,#konf-root select,#konf-root textarea{background-color:#fff}
+#konf-root img,#konf-root svg,#konf-root canvas{display:block;max-width:100%}
+#konf-root img{height:auto}
+#konf-root table{border-collapse:collapse;text-indent:0;border-color:inherit}
+#konf-root a{color:inherit;text-decoration:inherit}
+#konf-root .custom-scrollbar::-webkit-scrollbar{width:6px;height:6px}
+#konf-root .custom-scrollbar::-webkit-scrollbar-track{background:#f1f5f9}
+#konf-root .custom-scrollbar::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+*,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }#konf-root .fixed{position:fixed}#konf-root .absolute{position:absolute}#konf-root .relative{position:relative}#konf-root .sticky{position:sticky}#konf-root .inset-0{inset:0}#konf-root .right-1{right:.25rem}#konf-root .top-0{top:0}#konf-root .top-1{top:.25rem}#konf-root .z-40{z-index:40}#konf-root .z-50{z-index:50}#konf-root .mx-auto{margin-left:auto;margin-right:auto}#konf-root .mb-1{margin-bottom:.25rem}#konf-root .mb-2{margin-bottom:.5rem}#konf-root .mb-4{margin-bottom:1rem}#konf-root .mt-1{margin-top:.25rem}#konf-root .mt-1\.5{margin-top:.375rem}#konf-root .mt-4{margin-top:1rem}#konf-root .block{display:block}#konf-root .flex{display:flex}#konf-root .table{display:table}#konf-root .grid{display:grid}#konf-root .hidden{display:none}#konf-root .h-10{height:2.5rem}#konf-root .h-16{height:4rem}#konf-root .h-20{height:5rem}#konf-root .h-4{height:1rem}#konf-root .h-64{height:16rem}#konf-root .h-full{height:100%}#konf-root .max-h-\[65vh\]{max-height:65vh}#konf-root .min-h-screen{min-height:100vh}#konf-root .w-10{width:2.5rem}#konf-root .w-16{width:4rem}#konf-root .w-20{width:5rem}#konf-root .w-4{width:1rem}#konf-root .w-full{width:100%}#konf-root .max-w-2xl{max-width:42rem}#konf-root .max-w-7xl{max-width:80rem}#konf-root .max-w-xl{max-width:36rem}#konf-root .flex-1{flex:1 1 0%}#konf-root .flex-shrink-0{flex-shrink:0}#konf-root .border-collapse{border-collapse:collapse}#konf-root .cursor-pointer{cursor:pointer}#konf-root .grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}#konf-root .grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}#konf-root .grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}#konf-root .flex-col{flex-direction:column}#konf-root .items-start{align-items:flex-start}#konf-root .items-center{align-items:center}#konf-root .items-baseline{align-items:baseline}#konf-root .justify-end{justify-content:flex-end}#konf-root .justify-center{justify-content:center}#konf-root .justify-between{justify-content:space-between}#konf-root .gap-1{gap:.25rem}#konf-root .gap-1\.5{gap:.375rem}#konf-root .gap-2{gap:.5rem}#konf-root .gap-3{gap:.75rem}#konf-root .gap-4{gap:1rem}#konf-root .gap-6{gap:1.5rem}#konf-root :is(.space-y-2\.5>:not([hidden])~:not([hidden])){--tw-space-y-reverse:0;margin-top:calc(.625rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.625rem*var(--tw-space-y-reverse))}#konf-root :is(.space-y-3>:not([hidden])~:not([hidden])){--tw-space-y-reverse:0;margin-top:calc(.75rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.75rem*var(--tw-space-y-reverse))}#konf-root :is(.space-y-4>:not([hidden])~:not([hidden])){--tw-space-y-reverse:0;margin-top:calc(1rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem*var(--tw-space-y-reverse))}#konf-root :is(.space-y-5>:not([hidden])~:not([hidden])){--tw-space-y-reverse:0;margin-top:calc(1.25rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.25rem*var(--tw-space-y-reverse))}#konf-root :is(.space-y-6>:not([hidden])~:not([hidden])){--tw-space-y-reverse:0;margin-top:calc(1.5rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem*var(--tw-space-y-reverse))}#konf-root :is(.divide-y>:not([hidden])~:not([hidden])){--tw-divide-y-reverse:0;border-top-width:calc(1px*(1 - var(--tw-divide-y-reverse)));border-bottom-width:calc(1px*var(--tw-divide-y-reverse))}#konf-root :is(.divide-slate-100>:not([hidden])~:not([hidden])){--tw-divide-opacity:1;border-color:rgb(241 245 249/var(--tw-divide-opacity,1))}#konf-root .overflow-hidden{overflow:hidden}#konf-root .overflow-x-auto{overflow-x:auto}#konf-root .overflow-y-auto{overflow-y:auto}#konf-root .whitespace-nowrap{white-space:nowrap}#konf-root .rounded{border-radius:.25rem}#konf-root .rounded-2xl{border-radius:1rem}#konf-root .rounded-full{border-radius:9999px}#konf-root .rounded-lg{border-radius:.5rem}#konf-root .rounded-md{border-radius:.375rem}#konf-root .rounded-xl{border-radius:.75rem}#konf-root .border{border-width:1px}#konf-root .border-x{border-left-width:1px;border-right-width:1px}#konf-root .border-b{border-bottom-width:1px}#konf-root .border-t{border-top-width:1px}#konf-root .border-dashed{border-style:dashed}#konf-root .border-amber-100{--tw-border-opacity:1;border-color:rgb(254 243 199/var(--tw-border-opacity,1))}#konf-root .border-blue-500\/30{border-color:rgba(59,130,246,.3)}#konf-root .border-emerald-200{--tw-border-opacity:1;border-color:rgb(167 243 208/var(--tw-border-opacity,1))}#konf-root .border-emerald-700{--tw-border-opacity:1;border-color:rgb(4 120 87/var(--tw-border-opacity,1))}#konf-root .border-rose-100{--tw-border-opacity:1;border-color:rgb(255 228 230/var(--tw-border-opacity,1))}#konf-root .border-rose-700{--tw-border-opacity:1;border-color:rgb(190 18 60/var(--tw-border-opacity,1))}#konf-root .border-slate-100{--tw-border-opacity:1;border-color:rgb(241 245 249/var(--tw-border-opacity,1))}#konf-root .border-slate-200{--tw-border-opacity:1;border-color:rgb(226 232 240/var(--tw-border-opacity,1))}#konf-root .border-slate-200\/80{border-color:rgba(226,232,240,.8)}#konf-root .border-slate-300{--tw-border-opacity:1;border-color:rgb(203 213 225/var(--tw-border-opacity,1))}#konf-root .border-slate-600{--tw-border-opacity:1;border-color:rgb(71 85 105/var(--tw-border-opacity,1))}#konf-root .border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85/var(--tw-border-opacity,1))}#konf-root .border-slate-700\/80{border-color:rgba(51,65,85,.8)}#konf-root .border-slate-800{--tw-border-opacity:1;border-color:rgb(30 41 59/var(--tw-border-opacity,1))}#konf-root .bg-amber-50{--tw-bg-opacity:1;background-color:rgb(255 251 235/var(--tw-bg-opacity,1))}#konf-root .bg-blue-50{--tw-bg-opacity:1;background-color:rgb(239 246 255/var(--tw-bg-opacity,1))}#konf-root .bg-blue-500\/20{background-color:rgba(59,130,246,.2)}#konf-root .bg-blue-600{--tw-bg-opacity:1;background-color:rgb(37 99 235/var(--tw-bg-opacity,1))}#konf-root .bg-blue-600\/30{background-color:rgba(37,99,235,.3)}#konf-root .bg-emerald-50{--tw-bg-opacity:1;background-color:rgb(236 253 245/var(--tw-bg-opacity,1))}#konf-root .bg-emerald-600{--tw-bg-opacity:1;background-color:rgb(5 150 105/var(--tw-bg-opacity,1))}#konf-root .bg-red-600{--tw-bg-opacity:1;background-color:rgb(220 38 38/var(--tw-bg-opacity,1))}#konf-root .bg-rose-50{--tw-bg-opacity:1;background-color:rgb(255 241 242/var(--tw-bg-opacity,1))}#konf-root .bg-rose-600{--tw-bg-opacity:1;background-color:rgb(225 29 72/var(--tw-bg-opacity,1))}#konf-root .bg-slate-100{--tw-bg-opacity:1;background-color:rgb(241 245 249/var(--tw-bg-opacity,1))}#konf-root .bg-slate-50{--tw-bg-opacity:1;background-color:rgb(248 250 252/var(--tw-bg-opacity,1))}#konf-root .bg-slate-700{--tw-bg-opacity:1;background-color:rgb(51 65 85/var(--tw-bg-opacity,1))}#konf-root .bg-slate-700\/50{background-color:rgba(51,65,85,.5)}#konf-root .bg-slate-800{--tw-bg-opacity:1;background-color:rgb(30 41 59/var(--tw-bg-opacity,1))}#konf-root .bg-slate-800\/90{background-color:rgba(30,41,59,.9)}#konf-root .bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42/var(--tw-bg-opacity,1))}#konf-root .bg-slate-900\/80{background-color:rgba(15,23,42,.8)}#konf-root .bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255/var(--tw-bg-opacity,1))}#konf-root .bg-gradient-to-tr{background-image:linear-gradient(to top right,var(--tw-gradient-stops))}#konf-root .from-blue-600{--tw-gradient-from:#2563eb var(--tw-gradient-from-position);--tw-gradient-to:rgba(37,99,235,0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to)}#konf-root .to-indigo-600{--tw-gradient-to:#4f46e5 var(--tw-gradient-to-position)}#konf-root .object-cover{-o-object-fit:cover;object-fit:cover}#konf-root .p-1{padding:.25rem}#konf-root .p-2\.5{padding:.625rem}#konf-root .p-3{padding:.75rem}#konf-root .p-3\.5{padding:.875rem}#konf-root .p-4{padding:1rem}#konf-root .p-5{padding:1.25rem}#konf-root .p-6{padding:1.5rem}#konf-root .px-2{padding-left:.5rem;padding-right:.5rem}#konf-root .px-2\.5{padding-left:.625rem;padding-right:.625rem}#konf-root .px-3{padding-left:.75rem;padding-right:.75rem}#konf-root .px-4{padding-left:1rem;padding-right:1rem}#konf-root .py-0\.5{padding-top:.125rem;padding-bottom:.125rem}#konf-root .py-1{padding-top:.25rem;padding-bottom:.25rem}#konf-root .py-1\.5{padding-top:.375rem;padding-bottom:.375rem}#konf-root .py-2{padding-top:.5rem;padding-bottom:.5rem}#konf-root .py-2\.5{padding-top:.625rem;padding-bottom:.625rem}#konf-root .py-3{padding-top:.75rem;padding-bottom:.75rem}#konf-root .py-6{padding-top:1.5rem;padding-bottom:1.5rem}#konf-root .pb-1{padding-bottom:.25rem}#konf-root .pb-2{padding-bottom:.5rem}#konf-root .pb-3{padding-bottom:.75rem}#konf-root .pt-2{padding-top:.5rem}#konf-root .pt-3{padding-top:.75rem}#konf-root .text-left{text-align:left}#konf-root .text-center{text-align:center}#konf-root .text-right{text-align:right}#konf-root .font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace}#konf-root .text-2xl{font-size:1.5rem;line-height:2rem}#konf-root .text-3xl{font-size:1.875rem;line-height:2.25rem}#konf-root .text-\[10px\]{font-size:10px}#konf-root .text-\[11px\]{font-size:11px}#konf-root .text-base{font-size:1rem;line-height:1.5rem}#konf-root .text-lg{font-size:1.125rem;line-height:1.75rem}#konf-root .text-sm{font-size:.875rem;line-height:1.25rem}#konf-root .text-xl{font-size:1.25rem;line-height:1.75rem}#konf-root .text-xs{font-size:.75rem;line-height:1rem}#konf-root .font-black{font-weight:900}#konf-root .font-bold{font-weight:700}#konf-root .font-extrabold{font-weight:800}#konf-root .font-medium{font-weight:500}#konf-root .font-normal{font-weight:400}#konf-root .font-semibold{font-weight:600}#konf-root .uppercase{text-transform:uppercase}#konf-root .tracking-tight{letter-spacing:-.025em}#konf-root .tracking-wider{letter-spacing:.05em}#konf-root .tracking-widest{letter-spacing:.1em}#konf-root .text-amber-400{--tw-text-opacity:1;color:rgb(251 191 36/var(--tw-text-opacity,1))}#konf-root .text-amber-600{--tw-text-opacity:1;color:rgb(217 119 6/var(--tw-text-opacity,1))}#konf-root .text-amber-700{--tw-text-opacity:1;color:rgb(180 83 9/var(--tw-text-opacity,1))}#konf-root .text-blue-300{--tw-text-opacity:1;color:rgb(147 197 253/var(--tw-text-opacity,1))}#konf-root .text-blue-600{--tw-text-opacity:1;color:rgb(37 99 235/var(--tw-text-opacity,1))}#konf-root .text-blue-700{--tw-text-opacity:1;color:rgb(29 78 216/var(--tw-text-opacity,1))}#konf-root .text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153/var(--tw-text-opacity,1))}#konf-root .text-emerald-600{--tw-text-opacity:1;color:rgb(5 150 105/var(--tw-text-opacity,1))}#konf-root .text-emerald-700{--tw-text-opacity:1;color:rgb(4 120 87/var(--tw-text-opacity,1))}#konf-root .text-indigo-600{--tw-text-opacity:1;color:rgb(79 70 229/var(--tw-text-opacity,1))}#konf-root .text-rose-400{--tw-text-opacity:1;color:rgb(251 113 133/var(--tw-text-opacity,1))}#konf-root .text-rose-700{--tw-text-opacity:1;color:rgb(190 18 60/var(--tw-text-opacity,1))}#konf-root .text-sky-400{--tw-text-opacity:1;color:rgb(56 189 248/var(--tw-text-opacity,1))}#konf-root .text-slate-200{--tw-text-opacity:1;color:rgb(226 232 240/var(--tw-text-opacity,1))}#konf-root .text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225/var(--tw-text-opacity,1))}#konf-root .text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184/var(--tw-text-opacity,1))}#konf-root .text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139/var(--tw-text-opacity,1))}#konf-root .text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105/var(--tw-text-opacity,1))}#konf-root .text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85/var(--tw-text-opacity,1))}#konf-root .text-slate-800{--tw-text-opacity:1;color:rgb(30 41 59/var(--tw-text-opacity,1))}#konf-root .text-slate-900{--tw-text-opacity:1;color:rgb(15 23 42/var(--tw-text-opacity,1))}#konf-root .text-white{--tw-text-opacity:1;color:rgb(255 255 255/var(--tw-text-opacity,1))}#konf-root .accent-blue-600{accent-color:#2563eb}#konf-root .accent-emerald-600{accent-color:#059669}#konf-root .opacity-0{opacity:0}#konf-root .opacity-90{opacity:.9}#konf-root .shadow{--tw-shadow:0 1px 3px 0 rgba(0,0,0,.1),0 1px 2px -1px rgba(0,0,0,.1);--tw-shadow-colored:0 1px 3px 0 var(--tw-shadow-color),0 1px 2px -1px var(--tw-shadow-color)}#konf-root .shadow,#konf-root .shadow-2xl{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}#konf-root .shadow-2xl{--tw-shadow:0 25px 50px -12px rgba(0,0,0,.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color)}#konf-root .shadow-lg{--tw-shadow:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color),0 4px 6px -4px var(--tw-shadow-color)}#konf-root .shadow-lg,#konf-root .shadow-md{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}#konf-root .shadow-md{--tw-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color),0 2px 4px -2px var(--tw-shadow-color)}#konf-root .shadow-sm{--tw-shadow:0 1px 2px 0 rgba(0,0,0,.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color)}#konf-root .shadow-sm,#konf-root .shadow-xl{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}#konf-root .shadow-xl{--tw-shadow:0 20px 25px -5px rgba(0,0,0,.1),0 8px 10px -6px rgba(0,0,0,.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color),0 8px 10px -6px var(--tw-shadow-color)}#konf-root .filter{filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}#konf-root .transition-all{transition-property:all;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}#konf-root .transition-colors{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}#konf-root .transition-opacity{transition-property:opacity;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}#konf-root .transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}#konf-root .hover\:bg-blue-100:hover{--tw-bg-opacity:1;background-color:rgb(219 234 254/var(--tw-bg-opacity,1))}#konf-root .hover\:bg-blue-700:hover{--tw-bg-opacity:1;background-color:rgb(29 78 216/var(--tw-bg-opacity,1))}#konf-root .hover\:bg-emerald-500:hover{--tw-bg-opacity:1;background-color:rgb(16 185 129/var(--tw-bg-opacity,1))}#konf-root .hover\:bg-emerald-700:hover{--tw-bg-opacity:1;background-color:rgb(4 120 87/var(--tw-bg-opacity,1))}#konf-root .hover\:bg-slate-200:hover{--tw-bg-opacity:1;background-color:rgb(226 232 240/var(--tw-bg-opacity,1))}#konf-root .hover\:bg-slate-50:hover{--tw-bg-opacity:1;background-color:rgb(248 250 252/var(--tw-bg-opacity,1))}#konf-root .hover\:bg-slate-600:hover{--tw-bg-opacity:1;background-color:rgb(71 85 105/var(--tw-bg-opacity,1))}#konf-root .hover\:bg-slate-700\/50:hover{background-color:rgba(51,65,85,.5)}#konf-root .hover\:bg-slate-800:hover{--tw-bg-opacity:1;background-color:rgb(30 41 59/var(--tw-bg-opacity,1))}#konf-root .hover\:text-blue-700:hover{--tw-text-opacity:1;color:rgb(29 78 216/var(--tw-text-opacity,1))}#konf-root .hover\:text-slate-700:hover{--tw-text-opacity:1;color:rgb(51 65 85/var(--tw-text-opacity,1))}#konf-root .hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255/var(--tw-text-opacity,1))}#konf-root :is(.group:hover .group-hover\:scale-105){--tw-scale-x:1.05;--tw-scale-y:1.05;transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}#konf-root :is(.group:hover .group-hover\:opacity-100){opacity:1}@media (min-width:640px){#konf-root .sm\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}#konf-root .sm\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}#konf-root .sm\:flex-row{flex-direction:row}#konf-root .sm\:items-center{align-items:center}#konf-root .sm\:px-6{padding-left:1.5rem;padding-right:1.5rem}}@media (min-width:768px){#konf-root .md\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (min-width:1024px){#konf-root .lg\:col-span-2{grid-column:span 2/span 2}#konf-root .lg\:inline{display:inline}#konf-root .lg\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}#konf-root .lg\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}#konf-root .lg\:grid-cols-6{grid-template-columns:repeat(6,minmax(0,1fr))}#konf-root .lg\:px-8{padding-left:2rem;padding-right:2rem}}@media (min-width:1536px){#konf-root .\32xl\:flex{display:flex}#konf-root .\32xl\:hidden{display:none}}
+</style>
 </head>
 <body>
 <div id="root"></div>
 
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script>
+window.KonfeksiyonApp = (function(){
+const { useState, useEffect, useRef, useMemo } = React;
+const INITIAL_MODULES_DATA = {
+  orders: [
+    {
+      id: "ORD-2026-01",
+      customer: "ASOS Design (UK)",
+      brandGroup: "Womenswear / Lingerie",
+      modelCode: "AS-8842-LACE",
+      modelName: "Dantel Detayl\u0131 Midi Elbise",
+      season: "SS27",
+      fabric: "92% Polyamide 8% Elastane Raschel Dantel",
+      color: "Midnight Navy",
+      orderQty: 4500,
+      cutQty: 4620,
+      sewnQty: 3890,
+      packedQty: 3450,
+      unitPriceUSD: 24.5,
+      unitFasonTRY: 48.5,
+      currency: "USD",
+      atelier: "Y\u0131ld\u0131z Konfeksiyon (DOSAB)",
+      line: "Bant 1 (\xD6rme & Dantel)",
+      orderDate: "2026-09-10",
+      deadline: "2026-12-05",
+      status: "\xDCretimde / Dikimde",
+      sam: 14.5,
+      operators: 18,
+      sampleStatus: "Onayland\u0131 (Tech-Pack v3)",
+      notes: "M\xFC\u015Fteri kuma\u015F hasl\u0131\u011F\u0131 (colorfastness) test raporu onayland\u0131.",
+      photos: [
+        "https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=400&q=80",
+        "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=400&q=80"
+      ]
+    },
+    {
+      id: "ORD-2026-02",
+      customer: "Inditex / Zara",
+      brandGroup: "Zara WOMAN Outerwear",
+      modelCode: "ZR-4109-BLZ",
+      modelName: "Kruvaze Keten Kar\u0131\u015F\u0131ml\u0131 Blazer",
+      season: "AW26/27",
+      fabric: "55% Linen 45% Viscose Dokuma",
+      color: "Natural Sand",
+      orderQty: 2800,
+      cutQty: 2850,
+      sewnQty: 2810,
+      packedQty: 2650,
+      unitPriceUSD: 42,
+      unitFasonTRY: 135,
+      currency: "USD",
+      atelier: "Kuzey Tekstil At\xF6lyesi (Kestel)",
+      line: "Bant 2 (Dokuma Ceket)",
+      orderDate: "2026-08-15",
+      deadline: "2026-11-28",
+      status: "Kalite & Paketleme",
+      sam: 32,
+      operators: 26,
+      sampleStatus: "PP Sample Onayl\u0131",
+      notes: "D\xFC\u011Fmeler corozo do\u011Fal ah\u015Fap g\xF6r\xFCn\xFCml\xFC \xF6zel \xFCretim.",
+      photos: [
+        "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=400&q=80"
+      ]
+    },
+    {
+      id: "ORD-2026-03",
+      customer: "River Island",
+      brandGroup: "Casual Tops",
+      modelCode: "RI-7721-TOP",
+      modelName: "Gipeli F\u0131rf\u0131rl\u0131 Crop Bluz",
+      season: "SS27",
+      fabric: "100% Cotton Poplin 120 GSM",
+      color: "Optic White",
+      orderQty: 6200,
+      cutQty: 6350,
+      sewnQty: 2100,
+      packedQty: 1400,
+      unitPriceUSD: 14.8,
+      unitFasonTRY: 36,
+      currency: "USD",
+      atelier: "\u0130\xE7 \xDCretim - Merkez Kat 2",
+      line: "Bant 3 (Hafif Dokuma)",
+      orderDate: "2026-10-01",
+      deadline: "2026-12-20",
+      status: "\xDCretimde / Dikimde",
+      sam: 11.2,
+      operators: 15,
+      sampleStatus: "Sales Sample Onayl\u0131",
+      notes: "Yaka biye dikiminde esneme olmamas\u0131 i\xE7in tel\xE2 takviyesi yap\u0131ld\u0131.",
+      photos: [
+        "https://images.unsplash.com/photo-1564257631407-4deb1f99d992?auto=format&fit=crop&w=400&q=80"
+      ]
+    },
+    {
+      id: "ORD-2026-04",
+      customer: "ASOS Curve",
+      brandGroup: "Plus Size Evening",
+      modelCode: "AS-9012-DRS",
+      modelName: "Saten Drapeli Gece Elbisesi",
+      season: "Holiday 26",
+      fabric: "100% Recycled Polyester Satin",
+      color: "Emerald Jewel",
+      orderQty: 3100,
+      cutQty: 3180,
+      sewnQty: 450,
+      packedQty: 0,
+      unitPriceUSD: 28,
+      unitFasonTRY: 64,
+      currency: "USD",
+      atelier: "Marmara Diki\u015F Evi (G\xFCrsu)",
+      line: "Bant 1 (\xD6rme & Dantel)",
+      orderDate: "2026-10-12",
+      deadline: "2027-01-15",
+      status: "Kesimhane A\u015Famas\u0131nda",
+      sam: 18.8,
+      operators: 20,
+      sampleStatus: "Fit Sample Bekliyor",
+      notes: "Kuma\u015F kesiminde kuma\u015F dinlendirme (relaxing) 24 saat uyguland\u0131.",
+      photos: []
+    }
+  ],
+  samples: [
+    { id: "SMP-101", modelCode: "AS-8842-LACE", sampleType: "PP (Pre-Production) Sample", requestedBy: "ASOS Buyer Sarah", requestDate: "2026-09-15", targetDate: "2026-10-02", status: "Onayland\u0131", courier: "DHL Express (AWB# 49201928)", notes: "\xD6l\xE7\xFC tablosu ve dantel tonda tam uyum sa\u011Fland\u0131." },
+    { id: "SMP-102", modelCode: "ZR-4109-BLZ", sampleType: "Fit Sample", requestedBy: "Zara Quality Team", requestDate: "2026-08-20", targetDate: "2026-09-05", status: "Onayland\u0131", courier: "UPS (AWB# 88392011)", notes: "Omuz pat\u0131 0.5 cm geni\u015Fletildi." },
+    { id: "SMP-103", modelCode: "RI-7721-TOP", sampleType: "Salesman Sample (SMS)", requestedBy: "River Island Showroom", requestDate: "2026-10-05", targetDate: "2026-10-25", status: "G\xF6nderildi", courier: "FedEx (AWB# 11920394)", notes: "Showroom sergisi i\xE7in 3 farkl\u0131 renk kombinasyonu g\xF6nderildi." },
+    { id: "SMP-104", modelCode: "AS-9012-DRS", sampleType: "Proto Sample", requestedBy: "ASOS Design Team", requestDate: "2026-10-15", targetDate: "2026-11-01", status: "At\xF6lyede Dikimde", courier: "-", notes: "Drape kal\u0131b\u0131 \xE7al\u0131\u015F\u0131l\u0131yor." }
+  ],
+  cuttingPlans: [
+    { id: "CUT-501", modelCode: "AS-8842-LACE", tableNo: "Kesim Masas\u0131 3", layerCount: 120, fabricTopMeter: 145.5, cutOrderQty: 4620, spreader: "Ahmet Usta", cutter: "Mehmet Kaya", status: "Tamamland\u0131", date: "2026-10-20" },
+    { id: "CUT-502", modelCode: "ZR-4109-BLZ", tableNo: "Kesim Masas\u0131 1", layerCount: 85, fabricTopMeter: 110, cutOrderQty: 2850, spreader: "Hasan \xC7elik", cutter: "\u0130smail Demir", status: "Tamamland\u0131", date: "2026-09-12" },
+    { id: "CUT-503", modelCode: "RI-7721-TOP", tableNo: "Kesim Masas\u0131 2", layerCount: 150, fabricTopMeter: 190, cutOrderQty: 6350, spreader: "Ali \xD6zt\xFCrk", cutter: "Murat \u015Eahin", status: "Kesimde", date: "2026-10-28" },
+    { id: "CUT-504", modelCode: "AS-9012-DRS", tableNo: "Kesim Masas\u0131 3", layerCount: 95, fabricTopMeter: 130, cutOrderQty: 3180, spreader: "Ahmet Usta", cutter: "Mehmet Kaya", status: "Planland\u0131", date: "2026-11-05" }
+  ],
+  lines: [
+    { id: "L1", name: "Bant 1 - Dantel & Hassas \xD6rme", activeModel: "AS-8842-LACE", operators: 18, shiftMinutes: 540, sam: 14.5, targetEff: 78, currentOutput: 465, defectRate: 1.8 },
+    { id: "L2", name: "Bant 2 - A\u011F\u0131r Dokuma & Blazer", activeModel: "ZR-4109-BLZ", operators: 26, shiftMinutes: 540, sam: 32, targetEff: 72, currentOutput: 305, defectRate: 2.4 },
+    { id: "L3", name: "Bant 3 - Seri Hafif Dokuma", activeModel: "RI-7721-TOP", operators: 15, shiftMinutes: 540, sam: 11.2, targetEff: 82, currentOutput: 595, defectRate: 1.1 }
+  ],
+  warehouseStock: [
+    { id: "STK-01", materialCode: "FAB-RAS-01", name: "Raschel Dantel Kuma\u015F (Midnight Navy)", category: "Kuma\u015F", stockQty: 1850, unit: "Metre", unitPrice: 4.8, currency: "USD", supplier: "Bursa \xD6rme Sanayi", location: "Raf A-12" },
+    { id: "STK-02", materialCode: "FAB-LIN-02", name: "%55 Keten %45 Viskon Dokuma (Sand)", category: "Kuma\u015F", stockQty: 920, unit: "Metre", unitPrice: 6.5, currency: "USD", supplier: "\u0130peki\u015F Mensucat", location: "Raf B-04" },
+    { id: "STK-03", materialCode: "ACC-ZIP-18", name: "18cm G\xF6r\xFCnmez Naylon Fermuar (Ton S\xFCr Ton)", category: "Aksesuar", stockQty: 12500, unit: "Adet", unitPrice: 0.15, currency: "USD", supplier: "YKK Bursa", location: "Kutu C-02" },
+    { id: "STK-04", materialCode: "ACC-LBL-05", name: "Saten Dokuma Marka & Y\u0131kama Etiketi", category: "Etiket", stockQty: 25e3, unit: "Adet", unitPrice: 0.04, currency: "USD", supplier: "Etiketsan \u0130stanbul", location: "Kutu D-01" },
+    { id: "STK-05", materialCode: "ACC-BTN-12", name: "20L Corozo Do\u011Fal D\xFC\u011Fme", category: "Aksesuar", stockQty: 6e3, unit: "Adet", unitPrice: 0.12, currency: "USD", supplier: "Moda D\xFC\u011Fme", location: "Kutu C-08" }
+  ],
+  invoices: [
+    { id: "INV-2026-89", type: "Fason \xDCretim Faturas\u0131", partner: "Y\u0131ld\u0131z Konfeksiyon (DOSAB)", modelCode: "AS-8842-LACE", quantity: 3450, unitPrice: 48.5, grossTotal: 167325, vatRate: 20, withholding: "5/10 Tevkifat", netPayable: 184057.5, date: "2026-10-30", status: "\xD6dendi" },
+    { id: "INV-2026-92", type: "Kuma\u015F Al\u0131\u015F Faturas\u0131", partner: "Bursa \xD6rme Sanayi", modelCode: "AS-8842-LACE", quantity: 4800, unitPrice: 4.8, grossTotal: 23040, vatRate: 20, withholding: "Yok", netPayable: 27648, date: "2026-09-12", status: "\xD6dendi" },
+    { id: "INV-2026-98", type: "Fason \xDCretim Faturas\u0131", partner: "Kuzey Tekstil At\xF6lyesi", modelCode: "ZR-4109-BLZ", quantity: 2650, unitPrice: 135, grossTotal: 357750, vatRate: 20, withholding: "5/10 Tevkifat", netPayable: 393525, date: "2026-10-25", status: "Onay Bekliyor" }
+  ]
+};
+const AQL_TABLE_II = [
+  { min: 91, max: 150, code: "F", sample: 20, major25: 1, minor40: 2 },
+  { min: 151, max: 280, code: "G", sample: 32, major25: 2, minor40: 3 },
+  { min: 281, max: 500, code: "H", sample: 50, major25: 3, minor40: 5 },
+  { min: 501, max: 1200, code: "J", sample: 80, major25: 5, minor40: 7 },
+  { min: 1201, max: 3200, code: "K", sample: 125, major25: 7, minor40: 10 },
+  { min: 3201, max: 1e4, code: "L", sample: 200, major25: 10, minor40: 14 },
+  { min: 10001, max: 35e3, code: "M", sample: 315, major25: 14, minor40: 21 }
+];
+function ErpCharts({ orders }) {
+  const barRef = useRef(null);
+  const pieRef = useRef(null);
+  const barInst = useRef(null);
+  const pieInst = useRef(null);
+  useEffect(() => {
+    if (typeof Chart === "undefined" || !barRef.current || !pieRef.current) return;
+    if (barInst.current) barInst.current.destroy();
+    if (pieInst.current) pieInst.current.destroy();
+    const ctxBar = barRef.current.getContext("2d");
+    barInst.current = new Chart(ctxBar, {
+      type: "bar",
+      data: {
+        labels: orders.map((o) => o.modelCode),
+        datasets: [
+          { label: "Sipari\u015F Adedi", data: orders.map((o) => o.orderQty), backgroundColor: "#94a3b8", borderRadius: 4 },
+          { label: "Kesilen Adet", data: orders.map((o) => o.cutQty), backgroundColor: "#3b82f6", borderRadius: 4 },
+          { label: "Paketlenen Adet", data: orders.map((o) => o.packedQty), backgroundColor: "#10b981", borderRadius: 4 }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: "bottom", labels: { boxWidth: 12, font: { size: 11 } } } },
+        scales: { y: { beginAtZero: true, grid: { color: "#f1f5f9" } }, x: { grid: { display: false } } }
+      }
+    });
+    const ctxPie = pieRef.current.getContext("2d");
+    pieInst.current = new Chart(ctxPie, {
+      type: "doughnut",
+      data: {
+        labels: orders.map((o) => o.customer),
+        datasets: [{
+          data: orders.map((o) => o.orderQty),
+          backgroundColor: ["#2563eb", "#0ea5e9", "#14b8a6", "#f59e0b"],
+          borderWidth: 2,
+          borderColor: "#ffffff"
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "65%",
+        plugins: { legend: { position: "bottom", labels: { boxWidth: 12, font: { size: 11 } } } }
+      }
+    });
+    return () => {
+      if (barInst.current) barInst.current.destroy();
+      if (pieInst.current) pieInst.current.destroy();
+    };
+  }, [orders]);
+  return /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 lg:grid-cols-3 gap-6" }, /* @__PURE__ */ React.createElement("div", { className: "lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm" }, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-4" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h3", { className: "text-sm font-bold text-slate-800" }, "Model Bazl\u0131 Sipari\u015F vs \xDCretim & Paketleme Ak\u0131\u015F\u0131"), /* @__PURE__ */ React.createElement("p", { className: "text-xs text-slate-500" }, "\u0130hracat sipari\u015Flerinin kesim ve paketleme performanslar\u0131")), /* @__PURE__ */ React.createElement("span", { className: "text-[11px] font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200" }, "Canl\u0131 ERP Senkron")), /* @__PURE__ */ React.createElement("div", { className: "h-64" }, /* @__PURE__ */ React.createElement("canvas", { ref: barRef }))), /* @__PURE__ */ React.createElement("div", { className: "bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm" }, /* @__PURE__ */ React.createElement("div", { className: "mb-4" }, /* @__PURE__ */ React.createElement("h3", { className: "text-sm font-bold text-slate-800" }, "M\xFC\u015Fteri & Marka Portf\xF6y Da\u011F\u0131l\u0131m\u0131"), /* @__PURE__ */ React.createElement("p", { className: "text-xs text-slate-500" }, "ASOS, Zara, River Island hacim payla\u015F\u0131m\u0131")), /* @__PURE__ */ React.createElement("div", { className: "h-64 flex items-center justify-center" }, /* @__PURE__ */ React.createElement("canvas", { ref: pieRef }))));
+}
+function KonfeksiyonApp({ onLogout, onSwitchSector, roleLabel }) {
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [data, setData] = useState(() => {
+    try {
+      const s = localStorage.getItem("filaris_konf_data");
+      return s ? JSON.parse(s) : INITIAL_MODULES_DATA;
+    } catch (e) {
+      return INITIAL_MODULES_DATA;
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem("filaris_konf_data", JSON.stringify(data));
+    } catch (e) {
+    }
+  }, [data]);
+  const [selectedOrderModal, setSelectedOrderModal] = useState(null);
+  const [showNewOrderModal, setShowNewOrderModal] = useState(false);
+  const [newOrder, setNewOrder] = useState({
+    customer: "ASOS Design",
+    brandGroup: "Womenswear",
+    modelCode: "",
+    modelName: "",
+    season: "SS27",
+    fabric: "100% Viscose Poplin",
+    color: "Black",
+    orderQty: 2500,
+    unitPriceUSD: 22,
+    unitFasonTRY: 50,
+    atelier: "Y\u0131ld\u0131z Konfeksiyon (DOSAB)",
+    deadline: "2027-02-15",
+    sam: 14
+  });
+  const [selectedFasonOrderId, setSelectedFasonOrderId] = useState("ORD-2026-01");
+  const [deductions, setDeductions] = useState({
+    fabricWaste: 0,
+    accessoryLoss: 850,
+    reworkPenalty: 450,
+    advancePayment: 35e3,
+    vatRate: 20
+  });
+  const [aqlForm, setAqlForm] = useState({
+    orderId: "ORD-2026-01",
+    inspector: "O\u011Fuzhan Bozda\u011F (Account Manager)",
+    lotSize: 3450,
+    defects: { openSeam: 1, brokenStitch: 1, oilStain: 0, measurementOut: 2, labelError: 0, looseThread: 3, ironShine: 1 },
+    notes: "Dantel kuplar\u0131 kontrol edildi. \xD6l\xE7\xFC toleranslar\u0131 standart dahilinde."
+  });
+  const kpis = useMemo(() => {
+    const totalOrd = data.orders.reduce((a, b) => a + b.orderQty, 0);
+    const totalCut = data.orders.reduce((a, b) => a + b.cutQty, 0);
+    const totalSewn = data.orders.reduce((a, b) => a + b.sewnQty, 0);
+    const totalPacked = data.orders.reduce((a, b) => a + b.packedQty, 0);
+    const stockCount = data.warehouseStock.length;
+    const pendingSamples = data.samples.filter((s) => s.status !== "Onayland\u0131").length;
+    return { totalOrd, totalCut, totalSewn, totalPacked, stockCount, pendingSamples };
+  }, [data]);
+  const updateLineParam = (id, field, value) => {
+    setData((prev) => ({
+      ...prev,
+      lines: prev.lines.map((l) => l.id === id ? { ...l, [field]: Number(value) } : l)
+    }));
+  };
+  const handlePhotoUpload = (orderId, e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setData((prev) => ({
+          ...prev,
+          orders: prev.orders.map((o) => o.id === orderId ? { ...o, photos: [...o.photos, ev.target.result] } : o)
+        }));
+        if (selectedOrderModal && selectedOrderModal.id === orderId) {
+          setSelectedOrderModal((prev) => ({ ...prev, photos: [...prev.photos, ev.target.result] }));
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+  const removePhoto = (orderId, idx) => {
+    setData((prev) => ({
+      ...prev,
+      orders: prev.orders.map((o) => o.id === orderId ? { ...o, photos: o.photos.filter((_, i) => i !== idx) } : o)
+    }));
+    if (selectedOrderModal && selectedOrderModal.id === orderId) {
+      setSelectedOrderModal((prev) => ({ ...prev, photos: prev.photos.filter((_, i) => i !== idx) }));
+    }
+  };
+  const handleCreateOrderSubmit = (e) => {
+    e.preventDefault();
+    if (!newOrder.modelCode || !newOrder.modelName) return;
+    const created = {
+      id: `ORD-2026-0${data.orders.length + 1}`,
+      ...newOrder,
+      orderQty: Number(newOrder.orderQty),
+      cutQty: Math.round(Number(newOrder.orderQty) * 1.03),
+      sewnQty: 0,
+      packedQty: 0,
+      currency: "USD",
+      line: "Bant 1 (\xD6rme & Dantel)",
+      orderDate: "2026-11-19",
+      status: "Planland\u0131 / Numune Bekliyor",
+      sam: Number(newOrder.sam),
+      operators: 18,
+      sampleStatus: "Proto \u0130stendi",
+      notes: "Yeni a\xE7\u0131lan ihracat sipari\u015Fi.",
+      photos: []
+    };
+    setData((prev) => ({ ...prev, orders: [created, ...prev.orders] }));
+    setShowNewOrderModal(false);
+    setNewOrder({
+      customer: "ASOS Design",
+      brandGroup: "Womenswear",
+      modelCode: "",
+      modelName: "",
+      season: "SS27",
+      fabric: "100% Viscose Poplin",
+      color: "Black",
+      orderQty: 2500,
+      unitPriceUSD: 22,
+      unitFasonTRY: 50,
+      atelier: "Y\u0131ld\u0131z Konfeksiyon (DOSAB)",
+      deadline: "2027-02-15",
+      sam: 14
+    });
+  };
+  const fasonCalc = useMemo(() => {
+    const ord = data.orders.find((o) => o.id === selectedFasonOrderId) || data.orders[0];
+    const gross = ord.packedQty * ord.unitFasonTRY;
+    const totalDed = Number(deductions.fabricWaste) + Number(deductions.accessoryLoss) + Number(deductions.reworkPenalty);
+    const netBeforeTax = Math.max(0, gross - totalDed);
+    const vat = netBeforeTax * (Number(deductions.vatRate) / 100);
+    const withholding = vat * 0.5;
+    const payableVat = vat - withholding;
+    const totalWithTax = netBeforeTax + payableVat;
+    const finalPayable = totalWithTax - Number(deductions.advancePayment);
+    return { ord, gross, totalDed, netBeforeTax, vat, withholding, payableVat, totalWithTax, finalPayable };
+  }, [data.orders, selectedFasonOrderId, deductions]);
+  const aqlEval = useMemo(() => {
+    const lot = Number(aqlForm.lotSize);
+    const row = AQL_TABLE_II.find((r) => lot >= r.min && lot <= r.max) || AQL_TABLE_II[AQL_TABLE_II.length - 1];
+    const majorTot = Object.entries(aqlForm.defects).filter(([k]) => ["openSeam", "brokenStitch", "oilStain", "measurementOut", "labelError"].includes(k)).reduce((acc, [_, v]) => acc + v, 0);
+    const minorTot = Object.entries(aqlForm.defects).filter(([k]) => ["looseThread", "ironShine"].includes(k)).reduce((acc, [_, v]) => acc + v, 0);
+    const isPassed = majorTot <= row.major25 && minorTot <= row.minor40;
+    return { row, majorTot, minorTot, isPassed };
+  }, [aqlForm]);
+  return /* @__PURE__ */ React.createElement("div", { className: "min-h-screen flex flex-col bg-slate-100 text-slate-900" }, /* @__PURE__ */ React.createElement("header", { className: "bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-md" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3" }, /* @__PURE__ */ React.createElement("div", { className: "w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-lg tracking-wider shadow-lg" }, "FT"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("span", { className: "font-bold text-base tracking-tight text-white whitespace-nowrap" }, "Filaris-Texnet"), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 uppercase tracking-widest" }, "Enterprise Konfeksiyon v2.6")), /* @__PURE__ */ React.createElement("p", { className: "text-[11px] text-slate-400" }, "Bursa DOSAB & \u0130hracat Operasyon Y\xF6netim Paneli"))), /* @__PURE__ */ React.createElement("div", { className: "hidden 2xl:flex items-center gap-1 bg-slate-800/90 p-1 rounded-xl border border-slate-700/80" }, [
+    { id: "dashboard", label: "Genel Bak\u0131\u015F & KPI" },
+    { id: "orders", label: "Sipari\u015F & Portf\xF6y" },
+    { id: "samples", label: "Numune Takip" },
+    { id: "cutting", label: "Kesimhane" },
+    { id: "lines", label: "Bant Sim\xFClasyonu" },
+    { id: "warehouse", label: "Depo & Stok" },
+    { id: "fason", label: "Fason Hakedi\u015F" },
+    { id: "invoices", label: "Finans & Faturalar" },
+    { id: "aql", label: "AQL Kalite" }
+  ].map((tab) => /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      key: tab.id,
+      onClick: () => setActiveTab(tab.id),
+      className: `px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${activeTab === tab.id ? "bg-blue-600 text-white shadow" : "text-slate-300 hover:text-white hover:bg-slate-700/50"}`
+    },
+    tab.label
+  ))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3" }, roleLabel && /* @__PURE__ */ React.createElement("span", { className: "hidden lg:inline text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap bg-blue-500/20 text-blue-300 border border-blue-500/30" }, roleLabel), /* @__PURE__ */ React.createElement("button", { onClick: onSwitchSector, className: "bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold px-3 py-2 rounded-xl transition-all" }, "\u21C4 Kuma\u015F"), /* @__PURE__ */ React.createElement("button", { onClick: onLogout, className: "border border-slate-600 hover:bg-slate-800 text-slate-300 text-xs font-semibold px-3 py-2 rounded-xl transition-all" }, "\xC7\u0131k\u0131\u015F"), /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      onClick: () => setShowNewOrderModal(true),
+      className: "bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-sm flex items-center gap-1.5"
+    },
+    /* @__PURE__ */ React.createElement("span", null, "+ Yeni Sipari\u015F")
+  ))), /* @__PURE__ */ React.createElement("div", { className: "flex 2xl:hidden overflow-x-auto px-4 py-2 gap-2 bg-slate-800 border-t border-slate-700 custom-scrollbar" }, [
+    { id: "dashboard", label: "KPI" },
+    { id: "orders", label: "Sipari\u015Fler" },
+    { id: "samples", label: "Numuneler" },
+    { id: "cutting", label: "Kesimhane" },
+    { id: "lines", label: "Bantlar" },
+    { id: "warehouse", label: "Depo" },
+    { id: "fason", label: "Hakedi\u015F" },
+    { id: "invoices", label: "Finans" },
+    { id: "aql", label: "AQL" }
+  ].map((tab) => /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      key: tab.id,
+      onClick: () => setActiveTab(tab.id),
+      className: `px-3 py-1.5 rounded-lg text-xs whitespace-nowrap font-medium ${activeTab === tab.id ? "bg-blue-600 text-white shadow" : "text-slate-300 bg-slate-700/50"}`
+    },
+    tab.label
+  )))), /* @__PURE__ */ React.createElement("main", { className: "flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6" }, /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-2 lg:grid-cols-6 gap-4" }, /* @__PURE__ */ React.createElement("div", { className: "bg-white p-4 rounded-2xl border border-slate-200 shadow-sm" }, /* @__PURE__ */ React.createElement("p", { className: "text-[11px] font-bold uppercase tracking-wider text-slate-400" }, "Toplam Sipari\u015F"), /* @__PURE__ */ React.createElement("div", { className: "mt-1 flex items-baseline justify-between" }, /* @__PURE__ */ React.createElement("span", { className: "text-xl font-black text-slate-900" }, kpis.totalOrd.toLocaleString("tr-TR")), /* @__PURE__ */ React.createElement("span", { className: "text-[11px] font-semibold text-blue-600" }, data.orders.length, " Model"))), /* @__PURE__ */ React.createElement("div", { className: "bg-white p-4 rounded-2xl border border-slate-200 shadow-sm" }, /* @__PURE__ */ React.createElement("p", { className: "text-[11px] font-bold uppercase tracking-wider text-slate-400" }, "Kesilen Adet"), /* @__PURE__ */ React.createElement("div", { className: "mt-1 flex items-baseline justify-between" }, /* @__PURE__ */ React.createElement("span", { className: "text-xl font-black text-slate-800" }, kpis.totalCut.toLocaleString("tr-TR")), /* @__PURE__ */ React.createElement("span", { className: "text-[11px] font-semibold text-slate-500" }, "%", (kpis.totalCut / kpis.totalOrd * 100).toFixed(0)))), /* @__PURE__ */ React.createElement("div", { className: "bg-white p-4 rounded-2xl border border-slate-200 shadow-sm" }, /* @__PURE__ */ React.createElement("p", { className: "text-[11px] font-bold uppercase tracking-wider text-slate-400" }, "Dikilen Adet"), /* @__PURE__ */ React.createElement("div", { className: "mt-1 flex items-baseline justify-between" }, /* @__PURE__ */ React.createElement("span", { className: "text-xl font-black text-blue-600" }, kpis.totalSewn.toLocaleString("tr-TR")), /* @__PURE__ */ React.createElement("span", { className: "text-[11px] font-semibold text-blue-600" }, "%", (kpis.totalSewn / kpis.totalOrd * 100).toFixed(0)))), /* @__PURE__ */ React.createElement("div", { className: "bg-white p-4 rounded-2xl border border-slate-200 shadow-sm" }, /* @__PURE__ */ React.createElement("p", { className: "text-[11px] font-bold uppercase tracking-wider text-slate-400" }, "Paketlenen"), /* @__PURE__ */ React.createElement("div", { className: "mt-1 flex items-baseline justify-between" }, /* @__PURE__ */ React.createElement("span", { className: "text-xl font-black text-emerald-600" }, kpis.totalPacked.toLocaleString("tr-TR")), /* @__PURE__ */ React.createElement("span", { className: "text-[11px] font-semibold text-emerald-600" }, "%", (kpis.totalPacked / kpis.totalOrd * 100).toFixed(0)))), /* @__PURE__ */ React.createElement("div", { className: "bg-white p-4 rounded-2xl border border-slate-200 shadow-sm" }, /* @__PURE__ */ React.createElement("p", { className: "text-[11px] font-bold uppercase tracking-wider text-slate-400" }, "Bekleyen Numune"), /* @__PURE__ */ React.createElement("div", { className: "mt-1 flex items-baseline justify-between" }, /* @__PURE__ */ React.createElement("span", { className: "text-xl font-black text-amber-600" }, kpis.pendingSamples), /* @__PURE__ */ React.createElement("span", { className: "text-[11px] font-semibold text-amber-600" }, "Aktif"))), /* @__PURE__ */ React.createElement("div", { className: "bg-white p-4 rounded-2xl border border-slate-200 shadow-sm" }, /* @__PURE__ */ React.createElement("p", { className: "text-[11px] font-bold uppercase tracking-wider text-slate-400" }, "Depo Kalemleri"), /* @__PURE__ */ React.createElement("div", { className: "mt-1 flex items-baseline justify-between" }, /* @__PURE__ */ React.createElement("span", { className: "text-xl font-black text-indigo-600" }, kpis.stockCount), /* @__PURE__ */ React.createElement("span", { className: "text-[11px] font-semibold text-indigo-600" }, "Kuma\u015F/Aksesuar")))), activeTab === "dashboard" && /* @__PURE__ */ React.createElement("div", { className: "space-y-6" }, /* @__PURE__ */ React.createElement(ErpCharts, { orders: data.orders }), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 lg:grid-cols-2 gap-6" }, /* @__PURE__ */ React.createElement("div", { className: "bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4" }, /* @__PURE__ */ React.createElement("h3", { className: "text-sm font-bold text-slate-800 border-b border-slate-100 pb-2" }, "Kritik Operasyon & Numune Takip Ak\u0131\u015F\u0131"), /* @__PURE__ */ React.createElement("div", { className: "space-y-3" }, data.samples.map((s) => /* @__PURE__ */ React.createElement("div", { key: s.id, className: "flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "font-bold text-slate-800" }, s.modelCode, " \u2014 ", /* @__PURE__ */ React.createElement("span", { className: "font-normal text-slate-600" }, s.sampleType)), /* @__PURE__ */ React.createElement("div", { className: "text-[11px] text-slate-500" }, "Al\u0131c\u0131: ", s.requestedBy, " | Hedef: ", s.targetDate)), /* @__PURE__ */ React.createElement("span", { className: `px-2.5 py-1 rounded-full text-[11px] font-bold ${s.status === "Onayland\u0131" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}` }, s.status))))), /* @__PURE__ */ React.createElement("div", { className: "bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4" }, /* @__PURE__ */ React.createElement("h3", { className: "text-sm font-bold text-slate-800 border-b border-slate-100 pb-2" }, "Son Ger\xE7ekle\u015Fen Fason & Malzeme Faturalar\u0131"), /* @__PURE__ */ React.createElement("div", { className: "space-y-3" }, data.invoices.map((inv) => /* @__PURE__ */ React.createElement("div", { key: inv.id, className: "flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "font-bold text-slate-800" }, inv.partner), /* @__PURE__ */ React.createElement("div", { className: "text-[11px] text-slate-500" }, inv.type, " (", inv.modelCode, ")")), /* @__PURE__ */ React.createElement("div", { className: "text-right" }, /* @__PURE__ */ React.createElement("div", { className: "font-bold text-slate-900" }, inv.netPayable.toLocaleString("tr-TR", { minimumFractionDigits: 2 }), " \u20BA"), /* @__PURE__ */ React.createElement("span", { className: `text-[10px] font-bold px-2 py-0.5 rounded ${inv.status === "\xD6dendi" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}` }, inv.status)))))))), activeTab === "orders" && /* @__PURE__ */ React.createElement("div", { className: "space-y-6" }, /* @__PURE__ */ React.createElement("div", { className: "flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h2", { className: "text-base font-bold text-slate-900" }, "\u0130hracat Sipari\u015Fleri & \xC7oklu Foto\u011Fraf Galerisi"), /* @__PURE__ */ React.createElement("p", { className: "text-xs text-slate-500" }, "ASOS, Zara ve River Island i\u015F emirleri, kuma\u015F detaylar\u0131 ve galeri y\xF6netimi.")), /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      onClick: () => setShowNewOrderModal(true),
+      className: "bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all shadow-sm"
+    },
+    "+ Yeni Sipari\u015F Tan\u0131mla"
+  )), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-6" }, data.orders.map((order) => {
+    const sewnPct = Math.round(order.sewnQty / order.orderQty * 100);
+    const packPct = Math.round(order.packedQty / order.orderQty * 100);
+    return /* @__PURE__ */ React.createElement("div", { key: order.id, className: "bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 flex flex-col justify-between space-y-4" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-start" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("span", { className: "text-xs font-mono font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg" }, order.id), /* @__PURE__ */ React.createElement("span", { className: "text-xs font-bold text-slate-600" }, order.customer)), /* @__PURE__ */ React.createElement("h3", { className: "text-base font-black text-slate-900 mt-1.5" }, order.modelCode, " \u2014 ", order.modelName), /* @__PURE__ */ React.createElement("p", { className: "text-xs text-slate-500" }, order.fabric, " | Renk: ", /* @__PURE__ */ React.createElement("strong", { className: "text-slate-700" }, order.color))), /* @__PURE__ */ React.createElement("div", { className: "text-right" }, /* @__PURE__ */ React.createElement("span", { className: "text-xs font-extrabold px-3 py-1 rounded-xl bg-slate-100 text-slate-800" }, "$", order.unitPriceUSD.toFixed(2), " / ad"))), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-3 gap-2 mt-4 bg-slate-50 p-3.5 rounded-xl border border-slate-100 text-center" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "text-[11px] text-slate-500 font-medium" }, "Kesim"), /* @__PURE__ */ React.createElement("div", { className: "text-sm font-black text-slate-800" }, order.cutQty.toLocaleString("tr-TR"))), /* @__PURE__ */ React.createElement("div", { className: "border-x border-slate-200" }, /* @__PURE__ */ React.createElement("div", { className: "text-[11px] text-slate-500 font-medium" }, "Dikim (%", sewnPct, ")"), /* @__PURE__ */ React.createElement("div", { className: "text-sm font-black text-blue-600" }, order.sewnQty.toLocaleString("tr-TR"))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "text-[11px] text-slate-500 font-medium" }, "Paket (%", packPct, ")"), /* @__PURE__ */ React.createElement("div", { className: "text-sm font-black text-emerald-600" }, order.packedQty.toLocaleString("tr-TR")))), /* @__PURE__ */ React.createElement("div", { className: "mt-4" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between mb-2" }, /* @__PURE__ */ React.createElement("span", { className: "text-xs font-bold text-slate-700" }, "Model & Numune Foto\u011Fraflar\u0131 (", order.photos.length, ")"), /* @__PURE__ */ React.createElement("label", { className: "cursor-pointer text-[11px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-lg transition-colors" }, "+ Foto\u011Fraf Ekle", /* @__PURE__ */ React.createElement("input", { type: "file", multiple: true, accept: "image/*", className: "hidden", onChange: (e) => handlePhotoUpload(order.id, e) }))), order.photos.length > 0 ? /* @__PURE__ */ React.createElement("div", { className: "flex gap-2 overflow-x-auto pb-1 custom-scrollbar" }, order.photos.map((src, idx) => /* @__PURE__ */ React.createElement("div", { key: idx, className: "relative group flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border border-slate-200" }, /* @__PURE__ */ React.createElement("img", { src, alt: "Model", onClick: () => setSelectedOrderModal(order), className: "w-full h-full object-cover cursor-pointer group-hover:scale-105 transition-transform" }), /* @__PURE__ */ React.createElement("button", { onClick: () => removePhoto(order.id, idx), className: "absolute top-1 right-1 bg-red-600 text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" }, "\xD7")))) : /* @__PURE__ */ React.createElement("div", { className: "border border-dashed border-slate-300 rounded-xl p-3 text-center text-[11px] text-slate-400" }, "Bu modele ait hen\xFCz foto\u011Fraf y\xFCklenmedi."))), /* @__PURE__ */ React.createElement("div", { className: "pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500" }, /* @__PURE__ */ React.createElement("span", null, "At\xF6lye: ", /* @__PURE__ */ React.createElement("strong", { className: "text-slate-800" }, order.atelier)), /* @__PURE__ */ React.createElement("span", null, "Termin: ", /* @__PURE__ */ React.createElement("strong", { className: "text-slate-800" }, order.deadline))));
+  }))), activeTab === "samples" && /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h2", { className: "text-base font-bold text-slate-900" }, "Numune Geli\u015Ftirme & Onay Takip Mod\xFCl\xFC"), /* @__PURE__ */ React.createElement("p", { className: "text-xs text-slate-500" }, "Proto, Fit, PP ve SMS numunelerinin m\xFC\u015Fteri talepleri, kargo takip numaralar\u0131 ve onay stat\xFCleri.")), /* @__PURE__ */ React.createElement("div", { className: "overflow-x-auto" }, /* @__PURE__ */ React.createElement("table", { className: "w-full text-left border-collapse" }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", { className: "bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase" }, /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4" }, "Numune ID & Model"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4" }, "Numune T\xFCr\xFC"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4" }, "Talep Eden / Al\u0131c\u0131"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4" }, "Hedef / Termin"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4" }, "Kargo / AWB"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4" }, "Stat\xFC"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4" }, "Notlar"))), /* @__PURE__ */ React.createElement("tbody", { className: "divide-y divide-slate-100 text-xs" }, data.samples.map((s) => /* @__PURE__ */ React.createElement("tr", { key: s.id, className: "hover:bg-slate-50" }, /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 font-bold text-slate-900" }, s.id, " ", /* @__PURE__ */ React.createElement("br", null), /* @__PURE__ */ React.createElement("span", { className: "font-normal text-blue-600" }, s.modelCode)), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 font-semibold text-slate-800" }, s.sampleType), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 text-slate-600" }, s.requestedBy), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 text-slate-600 font-mono" }, s.targetDate), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 font-mono text-slate-500" }, s.courier), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4" }, /* @__PURE__ */ React.createElement("span", { className: `px-2.5 py-1 rounded-full text-[11px] font-bold ${s.status === "Onayland\u0131" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}` }, s.status)), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 text-slate-500" }, s.notes))))))), activeTab === "cutting" && /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h2", { className: "text-base font-bold text-slate-900" }, "Kesimhane Planlama & Pasta Kat Adedi Takibi"), /* @__PURE__ */ React.createElement("p", { className: "text-xs text-slate-500" }, "Kuma\u015F top sarfiyatlar\u0131, kat say\u0131lar\u0131, yayg\u0131 (spreader) ve kesimci atamalar\u0131.")), /* @__PURE__ */ React.createElement("div", { className: "overflow-x-auto" }, /* @__PURE__ */ React.createElement("table", { className: "w-full text-left border-collapse" }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", { className: "bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase" }, /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4" }, "Kesim Emri ID"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4" }, "Model Kodu"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4" }, "Kesim Masas\u0131"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4 text-center" }, "Kat Adedi"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4 text-right" }, "Top Metre"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4 text-right" }, "Kesilen Sipari\u015F"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4" }, "Personel"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4" }, "Stat\xFC"))), /* @__PURE__ */ React.createElement("tbody", { className: "divide-y divide-slate-100 text-xs" }, data.cuttingPlans.map((c) => /* @__PURE__ */ React.createElement("tr", { key: c.id, className: "hover:bg-slate-50" }, /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 font-bold text-slate-900" }, c.id), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 font-semibold text-blue-600" }, c.modelCode), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 text-slate-700" }, c.tableNo), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 text-center font-bold" }, c.layerCount, " kat"), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 text-right font-mono" }, c.fabricTopMeter, " mt"), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 text-right font-bold text-emerald-600" }, c.cutOrderQty.toLocaleString("tr-TR"), " ad"), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 text-slate-600" }, "Yayg\u0131: ", c.spreader, " / Kesim: ", c.cutter), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4" }, /* @__PURE__ */ React.createElement("span", { className: `px-2.5 py-1 rounded-full text-[11px] font-bold ${c.status === "Tamamland\u0131" ? "bg-emerald-50 text-emerald-700" : "bg-blue-50 text-blue-700"}` }, c.status)))))))), activeTab === "lines" && /* @__PURE__ */ React.createElement("div", { className: "space-y-6" }, /* @__PURE__ */ React.createElement("div", { className: "bg-white p-5 rounded-2xl border border-slate-200 shadow-sm" }, /* @__PURE__ */ React.createElement("h2", { className: "text-base font-bold text-slate-900" }, "\u0130nteraktif Konfeksiyon Bant Dengeleme & Verimlilik Sim\xFClat\xF6r\xFC"), /* @__PURE__ */ React.createElement("p", { className: "text-xs text-slate-500 mt-1" }, "Operat\xF6r say\u0131s\u0131, model SAM de\u011Feri ve g\xFCnl\xFCk ger\xE7ekle\u015Fen dikim adetlerini de\u011Fi\u015Ftirerek bant verimlili\u011Fini canl\u0131 sim\xFCle edin.")), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 lg:grid-cols-3 gap-6" }, data.lines.map((line) => {
+    const theoretical100 = Math.round(line.operators * line.shiftMinutes / line.sam);
+    const targetQty = Math.round(theoretical100 * (line.targetEff / 100));
+    const actualEff = Math.min(130, line.currentOutput / theoretical100 * 100).toFixed(1);
+    const isAhead = line.currentOutput >= targetQty;
+    return /* @__PURE__ */ React.createElement("div", { key: line.id, className: "bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4" }, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-start" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h3", { className: "text-sm font-bold text-slate-900" }, line.name), /* @__PURE__ */ React.createElement("span", { className: "text-xs font-mono text-blue-600" }, line.activeModel)), /* @__PURE__ */ React.createElement("span", { className: `text-xs font-bold px-2.5 py-1 rounded-full ${isAhead ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}` }, "Verim: %", actualEff)), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "text-[11px] text-slate-500" }, "Hedef \xC7\u0131kt\u0131 (%", line.targetEff, ")"), /* @__PURE__ */ React.createElement("div", { className: "text-base font-bold text-slate-800" }, targetQty, " adet")), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "text-[11px] text-slate-500" }, "Ger\xE7ekle\u015Fen \xC7\u0131kt\u0131"), /* @__PURE__ */ React.createElement("div", { className: `text-base font-bold ${isAhead ? "text-emerald-600" : "text-amber-600"}` }, line.currentOutput, " adet"))), /* @__PURE__ */ React.createElement("div", { className: "space-y-3 text-xs pt-2" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between mb-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-slate-600 font-medium" }, "Operat\xF6r Say\u0131s\u0131"), /* @__PURE__ */ React.createElement("span", { className: "font-bold text-slate-900" }, line.operators, " ki\u015Fi")), /* @__PURE__ */ React.createElement("input", { type: "range", min: "8", max: "35", value: line.operators, onChange: (e) => updateLineParam(line.id, "operators", e.target.value), className: "w-full accent-blue-600" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between mb-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-slate-600 font-medium" }, "Model SAM (Dakika)"), /* @__PURE__ */ React.createElement("span", { className: "font-bold text-slate-900" }, line.sam, " dk")), /* @__PURE__ */ React.createElement("input", { type: "range", min: "5", max: "45", step: "0.5", value: line.sam, onChange: (e) => updateLineParam(line.id, "sam", e.target.value), className: "w-full accent-blue-600" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between mb-1" }, /* @__PURE__ */ React.createElement("span", { className: "text-slate-600 font-medium" }, "G\xFCnl\xFCk Ger\xE7ekle\u015Fen Dikim"), /* @__PURE__ */ React.createElement("span", { className: "font-bold text-blue-600" }, line.currentOutput, " adet")), /* @__PURE__ */ React.createElement("input", { type: "range", min: "100", max: "1000", step: "5", value: line.currentOutput, onChange: (e) => updateLineParam(line.id, "currentOutput", e.target.value), className: "w-full accent-emerald-600" }))));
+  }))), activeTab === "warehouse" && /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h2", { className: "text-base font-bold text-slate-900" }, "Kuma\u015F, Aksesuar & Etiket Depo Stok Y\xF6netimi"), /* @__PURE__ */ React.createElement("p", { className: "text-xs text-slate-500" }, "Bursa tesisleri hammadde giri\u015Fleri, raf konumlar\u0131 ve birim maliyet takibi.")), /* @__PURE__ */ React.createElement("div", { className: "overflow-x-auto" }, /* @__PURE__ */ React.createElement("table", { className: "w-full text-left border-collapse" }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", { className: "bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase" }, /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4" }, "Malzeme Kodu & Ad\u0131"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4" }, "Kategori"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4 text-right" }, "Stok Miktar\u0131"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4 text-right" }, "Birim Fiyat"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4" }, "Tedarik\xE7i"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4" }, "Raf Konumu"))), /* @__PURE__ */ React.createElement("tbody", { className: "divide-y divide-slate-100 text-xs" }, data.warehouseStock.map((stk) => /* @__PURE__ */ React.createElement("tr", { key: stk.id, className: "hover:bg-slate-50" }, /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 font-bold text-slate-900" }, stk.materialCode, /* @__PURE__ */ React.createElement("br", null), /* @__PURE__ */ React.createElement("span", { className: "font-normal text-slate-600" }, stk.name)), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4" }, /* @__PURE__ */ React.createElement("span", { className: "px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 font-semibold" }, stk.category)), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 text-right font-black text-emerald-600" }, stk.stockQty.toLocaleString("tr-TR"), " ", stk.unit), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 text-right font-mono" }, "$", stk.unitPrice.toFixed(2)), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 text-slate-600" }, stk.supplier), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 font-mono font-bold text-indigo-600" }, stk.location))))))), activeTab === "fason" && /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 lg:grid-cols-3 gap-6" }, /* @__PURE__ */ React.createElement("div", { className: "lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h2", { className: "text-base font-bold text-slate-900" }, "Fason At\xF6lye Hakedi\u015F & Kesinti Sim\xFClasyonu"), /* @__PURE__ */ React.createElement("p", { className: "text-xs text-slate-500" }, "Sa\u011Flam paket teslimatlar\u0131 \xFCzerinden kuma\u015F fire kesintileri, zayiatlar, avanslar ve KDV tevkifat\u0131.")), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block font-bold text-slate-700 mb-1" }, "\u0130\u015F Emri / Model Se\xE7in"), /* @__PURE__ */ React.createElement("select", { value: selectedFasonOrderId, onChange: (e) => setSelectedFasonOrderId(e.target.value), className: "w-full border border-slate-300 rounded-xl px-3 py-2 bg-white" }, data.orders.map((o) => /* @__PURE__ */ React.createElement("option", { key: o.id, value: o.id }, o.id, " - ", o.modelCode, " (", o.atelier, ")")))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block font-bold text-slate-700 mb-1" }, "At\xF6lye Unvan\u0131"), /* @__PURE__ */ React.createElement("input", { type: "text", readOnly: true, value: fasonCalc.ord.atelier, className: "w-full border border-slate-200 bg-slate-50 rounded-xl px-3 py-2 text-slate-600" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block font-bold text-slate-700 mb-1" }, "Kuma\u015F Fire / Eksik Kesintisi (\u20BA)"), /* @__PURE__ */ React.createElement("input", { type: "number", value: deductions.fabricWaste, onChange: (e) => setDeductions({ ...deductions, fabricWaste: e.target.value }), className: "w-full border border-slate-300 rounded-xl px-3 py-2" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block font-bold text-slate-700 mb-1" }, "Aksesuar Zayiat Kesintisi (\u20BA)"), /* @__PURE__ */ React.createElement("input", { type: "number", value: deductions.accessoryLoss, onChange: (e) => setDeductions({ ...deductions, accessoryLoss: e.target.value }), className: "w-full border border-slate-300 rounded-xl px-3 py-2" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block font-bold text-slate-700 mb-1" }, "Kalite Tamir / Rework Cezas\u0131 (\u20BA)"), /* @__PURE__ */ React.createElement("input", { type: "number", value: deductions.reworkPenalty, onChange: (e) => setDeductions({ ...deductions, reworkPenalty: e.target.value }), className: "w-full border border-slate-300 rounded-xl px-3 py-2" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block font-bold text-slate-700 mb-1" }, "\xD6denen Ara Avans Mahsubu (\u20BA)"), /* @__PURE__ */ React.createElement("input", { type: "number", value: deductions.advancePayment, onChange: (e) => setDeductions({ ...deductions, advancePayment: e.target.value }), className: "w-full border border-slate-300 rounded-xl px-3 py-2" })))), /* @__PURE__ */ React.createElement("div", { className: "bg-slate-900 text-white p-6 rounded-2xl shadow-xl flex flex-col justify-between space-y-5" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center border-b border-slate-800 pb-3" }, /* @__PURE__ */ React.createElement("span", { className: "text-xs uppercase font-bold text-slate-400" }, "Hakedi\u015F \xD6zeti"), /* @__PURE__ */ React.createElement("span", { className: "text-xs font-mono bg-blue-600/30 text-blue-300 px-2.5 py-0.5 rounded" }, fasonCalc.ord.modelCode)), /* @__PURE__ */ React.createElement("div", { className: "mt-4 space-y-2.5 text-xs" }, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between text-slate-300" }, /* @__PURE__ */ React.createElement("span", null, "Sa\u011Flam Teslim (Paket):"), /* @__PURE__ */ React.createElement("span", { className: "font-bold text-white" }, fasonCalc.ord.packedQty.toLocaleString("tr-TR"), " adet")), /* @__PURE__ */ React.createElement("div", { className: "flex justify-between text-slate-300" }, /* @__PURE__ */ React.createElement("span", null, "Birim Fiyat (TRY):"), /* @__PURE__ */ React.createElement("span", { className: "font-bold text-white" }, fasonCalc.ord.unitFasonTRY.toFixed(2), " \u20BA")), /* @__PURE__ */ React.createElement("div", { className: "flex justify-between text-slate-200 pt-2 border-t border-slate-800" }, /* @__PURE__ */ React.createElement("span", null, "Br\xFCt Fason Tutar\u0131:"), /* @__PURE__ */ React.createElement("span", { className: "font-bold" }, fasonCalc.gross.toLocaleString("tr-TR", { minimumFractionDigits: 2 }), " \u20BA")), /* @__PURE__ */ React.createElement("div", { className: "flex justify-between text-rose-400" }, /* @__PURE__ */ React.createElement("span", null, "Toplam Kesintiler:"), /* @__PURE__ */ React.createElement("span", null, "-", fasonCalc.totalDed.toLocaleString("tr-TR", { minimumFractionDigits: 2 }), " \u20BA")), /* @__PURE__ */ React.createElement("div", { className: "flex justify-between text-slate-200 pt-2 border-t border-slate-800" }, /* @__PURE__ */ React.createElement("span", null, "Net Matrah:"), /* @__PURE__ */ React.createElement("span", { className: "font-semibold" }, fasonCalc.netBeforeTax.toLocaleString("tr-TR", { minimumFractionDigits: 2 }), " \u20BA")), /* @__PURE__ */ React.createElement("div", { className: "flex justify-between text-slate-400" }, /* @__PURE__ */ React.createElement("span", null, "KDV (%20):"), /* @__PURE__ */ React.createElement("span", null, fasonCalc.vat.toLocaleString("tr-TR", { minimumFractionDigits: 2 }), " \u20BA")), /* @__PURE__ */ React.createElement("div", { className: "flex justify-between text-amber-400" }, /* @__PURE__ */ React.createElement("span", null, "Tevkifat (5/10):"), /* @__PURE__ */ React.createElement("span", null, "-", fasonCalc.withholding.toLocaleString("tr-TR", { minimumFractionDigits: 2 }), " \u20BA")), /* @__PURE__ */ React.createElement("div", { className: "flex justify-between text-sky-400 pt-2 border-t border-slate-800" }, /* @__PURE__ */ React.createElement("span", null, "Avans D\xFC\u015F\xFCm\xFC:"), /* @__PURE__ */ React.createElement("span", null, "-", Number(deductions.advancePayment).toLocaleString("tr-TR", { minimumFractionDigits: 2 }), " \u20BA")))), /* @__PURE__ */ React.createElement("div", { className: "bg-slate-800 p-4 rounded-xl border border-slate-700" }, /* @__PURE__ */ React.createElement("div", { className: "text-xs text-slate-400 font-medium" }, "\xD6denecek Net Bakiye"), /* @__PURE__ */ React.createElement("div", { className: "text-2xl font-black text-emerald-400 mt-1" }, fasonCalc.finalPayable.toLocaleString("tr-TR", { minimumFractionDigits: 2 }), " \u20BA")))), activeTab === "invoices" && /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h2", { className: "text-base font-bold text-slate-900" }, "Finans, Al\u0131\u015F & Fason Faturalar\u0131 Ar\u015Fivi"), /* @__PURE__ */ React.createElement("p", { className: "text-xs text-slate-500" }, "Tedarik\xE7i faturalar\u0131, tevkifatl\u0131 fason \xF6demeleri ve cari hesap takibi.")), /* @__PURE__ */ React.createElement("div", { className: "overflow-x-auto" }, /* @__PURE__ */ React.createElement("table", { className: "w-full text-left border-collapse" }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", { className: "bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase" }, /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4" }, "Fatura T\xFCr\xFC & Cari"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4" }, "Model / \u0130\u015F Emri"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4 text-center" }, "Adet"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4" }, "Tevkifat Durumu"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4 text-right" }, "Net \xD6denecek (TRY)"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4" }, "Tarih"), /* @__PURE__ */ React.createElement("th", { className: "py-3 px-4" }, "Durum"))), /* @__PURE__ */ React.createElement("tbody", { className: "divide-y divide-slate-100 text-xs" }, data.invoices.map((inv) => /* @__PURE__ */ React.createElement("tr", { key: inv.id, className: "hover:bg-slate-50" }, /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 font-bold text-slate-900" }, inv.type, /* @__PURE__ */ React.createElement("br", null), /* @__PURE__ */ React.createElement("span", { className: "font-normal text-slate-600" }, inv.partner)), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 font-semibold text-blue-600" }, inv.modelCode), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 text-center font-bold" }, inv.quantity.toLocaleString("tr-TR")), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 text-slate-600 font-medium" }, inv.withholding), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 text-right font-black text-slate-900" }, inv.netPayable.toLocaleString("tr-TR", { minimumFractionDigits: 2 }), " \u20BA"), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4 text-slate-500 font-mono" }, inv.date), /* @__PURE__ */ React.createElement("td", { className: "py-3 px-4" }, /* @__PURE__ */ React.createElement("span", { className: `px-2.5 py-1 rounded-full text-[11px] font-bold ${inv.status === "\xD6dendi" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}` }, inv.status)))))))), activeTab === "aql" && /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 lg:grid-cols-3 gap-6" }, /* @__PURE__ */ React.createElement("div", { className: "lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5" }, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-start" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h2", { className: "text-base font-bold text-slate-900" }, "ISO 2859-1 / ANSI AQL 2.5 - 4.0 Final Kalite Kontrol Formu"), /* @__PURE__ */ React.createElement("p", { className: "text-xs text-slate-500" }, "Lot b\xFCy\xFCkl\xFC\u011F\xFCne g\xF6re otomatik numune \xE7ekimi, Major/Minor hata limitleri.")), /* @__PURE__ */ React.createElement("span", { className: "text-xs font-mono font-bold bg-slate-100 text-slate-700 px-3 py-1 rounded-xl" }, "Kod Harfi: ", aqlEval.row.code)), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block font-bold text-slate-700 mb-1" }, "\u0130\u015F Emri Se\xE7"), /* @__PURE__ */ React.createElement("select", { value: aqlForm.orderId, onChange: (e) => {
+    const ord = data.orders.find((o) => o.id === e.target.value);
+    setAqlForm({ ...aqlForm, orderId: e.target.value, lotSize: ord ? ord.packedQty : 1e3 });
+  }, className: "w-full border border-slate-300 rounded-xl px-3 py-2 bg-white" }, data.orders.map((o) => /* @__PURE__ */ React.createElement("option", { key: o.id, value: o.id }, o.id, " - ", o.modelCode)))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block font-bold text-slate-700 mb-1" }, "Parti B\xFCy\xFCkl\xFC\u011F\xFC (Lot)"), /* @__PURE__ */ React.createElement("input", { type: "number", value: aqlForm.lotSize, onChange: (e) => setAqlForm({ ...aqlForm, lotSize: e.target.value }), className: "w-full border border-slate-300 rounded-xl px-3 py-2" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block font-bold text-slate-700 mb-1" }, "Denet\xE7i"), /* @__PURE__ */ React.createElement("input", { type: "text", value: aqlForm.inspector, onChange: (e) => setAqlForm({ ...aqlForm, inspector: e.target.value }), className: "w-full border border-slate-300 rounded-xl px-3 py-2" }))), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2" }, /* @__PURE__ */ React.createElement("div", { className: "space-y-3" }, /* @__PURE__ */ React.createElement("h4", { className: "text-xs font-black uppercase tracking-wider text-rose-700 border-b border-rose-100 pb-1" }, "Major Hatalar \u2014 AQL 2.5 (Kabul: ", aqlEval.row.major25, ")"), [
+    { key: "openSeam", label: "Patlak / A\xE7\u0131k Diki\u015F" },
+    { key: "brokenStitch", label: "Diki\u015F Atlamas\u0131" },
+    { key: "oilStain", label: "Makine Ya\u011F\u0131 / Leke" },
+    { key: "measurementOut", label: "\xD6l\xE7\xFC Tolerans D\u0131\u015F\u0131" },
+    { key: "labelError", label: "Yanl\u0131\u015F Etiket / Beden" }
+  ].map((item) => /* @__PURE__ */ React.createElement("div", { key: item.key, className: "flex items-center justify-between text-xs" }, /* @__PURE__ */ React.createElement("span", { className: "text-slate-700" }, item.label), /* @__PURE__ */ React.createElement("input", { type: "number", min: "0", value: aqlForm.defects[item.key], onChange: (e) => setAqlForm({ ...aqlForm, defects: { ...aqlForm.defects, [item.key]: Number(e.target.value) } }), className: "w-16 border border-slate-300 rounded-lg px-2 py-1 text-center font-bold" })))), /* @__PURE__ */ React.createElement("div", { className: "space-y-3" }, /* @__PURE__ */ React.createElement("h4", { className: "text-xs font-black uppercase tracking-wider text-amber-700 border-b border-amber-100 pb-1" }, "Minor Hatalar \u2014 AQL 4.0 (Kabul: ", aqlEval.row.minor40, ")"), [
+    { key: "looseThread", label: "Temizlenmemi\u015F \u0130plik Ucu" },
+    { key: "ironShine", label: "Hafif \xDCt\xFC Parlamas\u0131" }
+  ].map((item) => /* @__PURE__ */ React.createElement("div", { key: item.key, className: "flex items-center justify-between text-xs" }, /* @__PURE__ */ React.createElement("span", { className: "text-slate-700" }, item.label), /* @__PURE__ */ React.createElement("input", { type: "number", min: "0", value: aqlForm.defects[item.key], onChange: (e) => setAqlForm({ ...aqlForm, defects: { ...aqlForm.defects, [item.key]: Number(e.target.value) } }), className: "w-16 border border-slate-300 rounded-lg px-2 py-1 text-center font-bold" }))), /* @__PURE__ */ React.createElement("div", { className: "pt-3" }, /* @__PURE__ */ React.createElement("label", { className: "block font-bold text-slate-700 mb-1 text-xs" }, "Denet\xE7i Notlar\u0131"), /* @__PURE__ */ React.createElement("textarea", { rows: "2", value: aqlForm.notes, onChange: (e) => setAqlForm({ ...aqlForm, notes: e.target.value }), className: "w-full border border-slate-300 rounded-xl p-2.5 text-xs" }))))), /* @__PURE__ */ React.createElement("div", { className: "bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-5" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h3", { className: "text-sm font-bold text-slate-900 border-b border-slate-100 pb-3" }, "AQL Denetim Sonucu"), /* @__PURE__ */ React.createElement("div", { className: "mt-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center" }, /* @__PURE__ */ React.createElement("div", { className: "text-xs text-slate-500 font-medium" }, "\xC7ekilmesi Gereken Numune"), /* @__PURE__ */ React.createElement("div", { className: "text-3xl font-black text-blue-600 mt-1" }, aqlEval.row.sample, " adet"), /* @__PURE__ */ React.createElement("div", { className: "text-[11px] text-slate-400 mt-1" }, "Seviye II Normal Denetim")), /* @__PURE__ */ React.createElement("div", { className: "mt-4 space-y-3 text-xs" }, /* @__PURE__ */ React.createElement("div", { className: "p-3 rounded-xl border border-slate-200 flex justify-between items-center" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "font-bold text-slate-800" }, "Major Hata Toplam\u0131"), /* @__PURE__ */ React.createElement("div", { className: "text-[11px] text-slate-500" }, "Maksimum S\u0131n\u0131r: ", aqlEval.row.major25)), /* @__PURE__ */ React.createElement("span", { className: `text-sm font-black px-3 py-1 rounded-xl ${aqlEval.majorTot <= aqlEval.row.major25 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}` }, aqlEval.majorTot, " / ", aqlEval.row.major25)), /* @__PURE__ */ React.createElement("div", { className: "p-3 rounded-xl border border-slate-200 flex justify-between items-center" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "font-bold text-slate-800" }, "Minor Hata Toplam\u0131"), /* @__PURE__ */ React.createElement("div", { className: "text-[11px] text-slate-500" }, "Maksimum S\u0131n\u0131r: ", aqlEval.row.minor40)), /* @__PURE__ */ React.createElement("span", { className: `text-sm font-black px-3 py-1 rounded-xl ${aqlEval.minorTot <= aqlEval.row.minor40 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}` }, aqlEval.minorTot, " / ", aqlEval.row.minor40)))), /* @__PURE__ */ React.createElement("div", { className: `p-4 rounded-2xl text-center border font-bold ${aqlEval.isPassed ? "bg-emerald-600 text-white border-emerald-700" : "bg-rose-600 text-white border-rose-700"}` }, /* @__PURE__ */ React.createElement("div", { className: "text-xs uppercase tracking-wider opacity-90" }, "Final Y\xFCkleme Stat\xFCs\xFC"), /* @__PURE__ */ React.createElement("div", { className: "text-lg font-black mt-1" }, aqlEval.isPassed ? "PASSED \u2014 Y\xDCKLEMEYE UYGUN" : "FAILED \u2014 REWORK GEREKL\u0130"))))), showNewOrderModal && /* @__PURE__ */ React.createElement("div", { onClick: () => setShowNewOrderModal(false), className: "fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4" }, /* @__PURE__ */ React.createElement("div", { onClick: (e) => e.stopPropagation(), className: "bg-white rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl" }, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center border-b border-slate-100 pb-3" }, /* @__PURE__ */ React.createElement("h3", { className: "text-base font-bold text-slate-900" }, "Yeni \u0130hracat Sipari\u015Fi / \u0130\u015F Emri Ekle"), /* @__PURE__ */ React.createElement("button", { onClick: () => setShowNewOrderModal(false), className: "text-slate-400 hover:text-slate-700 font-bold text-lg" }, "\u2715")), /* @__PURE__ */ React.createElement("form", { onSubmit: handleCreateOrderSubmit, className: "space-y-3 text-xs" }, /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-2 gap-3" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block font-bold text-slate-700 mb-1" }, "M\xFC\u015Fteri / Marka"), /* @__PURE__ */ React.createElement("input", { type: "text", value: newOrder.customer, onChange: (e) => setNewOrder({ ...newOrder, customer: e.target.value }), className: "w-full border border-slate-300 rounded-xl px-3 py-2", required: true })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block font-bold text-slate-700 mb-1" }, "Model Kodu"), /* @__PURE__ */ React.createElement("input", { type: "text", placeholder: "\xD6rn: AS-9920-DRS", value: newOrder.modelCode, onChange: (e) => setNewOrder({ ...newOrder, modelCode: e.target.value }), className: "w-full border border-slate-300 rounded-xl px-3 py-2", required: true })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block font-bold text-slate-700 mb-1" }, "Model Ad\u0131"), /* @__PURE__ */ React.createElement("input", { type: "text", placeholder: "\xD6rn: Viskon Midi Elbise", value: newOrder.modelName, onChange: (e) => setNewOrder({ ...newOrder, modelName: e.target.value }), className: "w-full border border-slate-300 rounded-xl px-3 py-2", required: true })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block font-bold text-slate-700 mb-1" }, "Kuma\u015F Kalitesi"), /* @__PURE__ */ React.createElement("input", { type: "text", value: newOrder.fabric, onChange: (e) => setNewOrder({ ...newOrder, fabric: e.target.value }), className: "w-full border border-slate-300 rounded-xl px-3 py-2" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block font-bold text-slate-700 mb-1" }, "Sipari\u015F Adedi"), /* @__PURE__ */ React.createElement("input", { type: "number", value: newOrder.orderQty, onChange: (e) => setNewOrder({ ...newOrder, orderQty: e.target.value }), className: "w-full border border-slate-300 rounded-xl px-3 py-2", required: true })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block font-bold text-slate-700 mb-1" }, "Birim Fiyat ($)"), /* @__PURE__ */ React.createElement("input", { type: "number", step: "0.1", value: newOrder.unitPriceUSD, onChange: (e) => setNewOrder({ ...newOrder, unitPriceUSD: e.target.value }), className: "w-full border border-slate-300 rounded-xl px-3 py-2", required: true })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block font-bold text-slate-700 mb-1" }, "Fason Birim Fiyat (\u20BA)"), /* @__PURE__ */ React.createElement("input", { type: "number", step: "0.5", value: newOrder.unitFasonTRY, onChange: (e) => setNewOrder({ ...newOrder, unitFasonTRY: e.target.value }), className: "w-full border border-slate-300 rounded-xl px-3 py-2", required: true })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block font-bold text-slate-700 mb-1" }, "\xDCretim Yeri / At\xF6lye"), /* @__PURE__ */ React.createElement("input", { type: "text", value: newOrder.atelier, onChange: (e) => setNewOrder({ ...newOrder, atelier: e.target.value }), className: "w-full border border-slate-300 rounded-xl px-3 py-2" }))), /* @__PURE__ */ React.createElement("div", { className: "flex justify-end gap-2 pt-3 border-t border-slate-100" }, /* @__PURE__ */ React.createElement("button", { type: "button", onClick: () => setShowNewOrderModal(false), className: "px-4 py-2 rounded-xl text-slate-600 bg-slate-100 hover:bg-slate-200 font-bold" }, "\u0130ptal"), /* @__PURE__ */ React.createElement("button", { type: "submit", className: "px-4 py-2 rounded-xl text-white bg-emerald-600 hover:bg-emerald-700 font-bold" }, "Kaydet"))))), selectedOrderModal && /* @__PURE__ */ React.createElement("div", { onClick: () => setSelectedOrderModal(null), className: "fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4" }, /* @__PURE__ */ React.createElement("div", { onClick: (e) => e.stopPropagation(), className: "bg-white rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl" }, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center border-b border-slate-100 pb-3" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h3", { className: "text-sm font-bold text-slate-900" }, selectedOrderModal.modelCode, " \u2014 Galeri \xD6nizleme"), /* @__PURE__ */ React.createElement("p", { className: "text-xs text-slate-500" }, selectedOrderModal.modelName)), /* @__PURE__ */ React.createElement("button", { onClick: () => setSelectedOrderModal(null), className: "text-slate-400 hover:text-slate-700 text-lg font-bold" }, "\u2715")), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[65vh] overflow-y-auto" }, selectedOrderModal.photos.map((src, i) => /* @__PURE__ */ React.createElement("img", { key: i, src, alt: "Detay", className: "w-full h-64 object-cover rounded-xl border border-slate-200" }))))));
+}
+
+return KonfeksiyonApp;
+})();
+</script>
 
 <!-- Kod tamamen React.createElement(...) ile yazıldı, gerçek JSX kullanılmadı —
      bu yüzden Babel'e (derleme adımına) hiç ihtiyaç yok. Düz <script> olarak,
@@ -553,9 +1009,10 @@ function LoginScreen({ onLogin, lang, setLang, dark, setDark }) {
   const [pass, setPass] = useState("");
   const [error, setError] = useState("");
   const [role, setRole] = useState("yonetici");
+  const [sector, setSector] = usePersistentState("sector", "konfeksiyon");
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (user.trim().toLowerCase() === "pilot" && pass === "1234") { setError(""); onLogin(role); }
+    if (user.trim().toLowerCase() === "pilot" && pass === "1234") { setError(""); onLogin(role, sector); }
     else setError("Kullanıcı adı veya şifre hatalı");
   };
   return React.createElement("div", { style: { minHeight: "100vh", background: COLORS.base, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: fontBody, padding: 24, color: COLORS.ink } },
@@ -564,6 +1021,18 @@ function LoginScreen({ onLogin, lang, setLang, dark, setDark }) {
       React.createElement("div", { style: { display: "flex", justifyContent: "center", marginBottom: 16 } }, React.createElement(LogoMark, { size: 48, animated: true })),
       React.createElement("div", { style: { textAlign: "center", fontFamily: fontDisplay, fontWeight: 700, fontSize: 18, marginBottom: 2, color: COLORS.ink } }, "Filaris ", React.createElement("span", { style: { color: COLORS.accent } }, "Texnet")),
       React.createElement("div", { style: { textAlign: "center", fontSize: 12, color: COLORS.inkDim, marginBottom: 22 } }, t("login_title")),
+      React.createElement("div", { style: { marginBottom: 16 } },
+        React.createElement("label", { style: { fontSize: 12, fontWeight: 600, color: COLORS.inkDim, display: "block", marginBottom: 6 } }, lang === "en" ? "Sector" : "Sektör"),
+        React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 } },
+          [{ k: "konfeksiyon", ic: "👗", tr: "Konfeksiyon", en: "Garment", sub: lang === "en" ? "Orders · cutting · lines" : "Sipariş · kesim · bant" },
+           { k: "kumas", ic: "🧵", tr: "Kumaş", en: "Fabric", sub: lang === "en" ? "Knitting · dye · stock" : "Örme · boya · stok" }].map(s => {
+            const on = sector === s.k;
+            return React.createElement("button", { key: s.k, type: "button", onClick: () => setSector(s.k),
+              style: { padding: "12px 8px", borderRadius: 10, border: "2px solid " + (on ? COLORS.accent : COLORS.border), background: on ? COLORS.accent + "14" : "transparent", cursor: "pointer", textAlign: "center", fontFamily: fontBody } },
+              React.createElement("div", { style: { fontSize: 22 } }, s.ic),
+              React.createElement("div", { style: { fontSize: 13, fontWeight: 700, color: on ? COLORS.accent : COLORS.ink } }, lang === "en" ? s.en : s.tr),
+              React.createElement("div", { style: { fontSize: 10.5, color: COLORS.inkDim, marginTop: 2 } }, s.sub));
+          }))),
       React.createElement("form", { onSubmit: handleSubmit, style: { display: "flex", flexDirection: "column", gap: 12 } },
         React.createElement("div", null,
           React.createElement("label", { style: { fontSize: 12, fontWeight: 600, color: COLORS.inkDim, display: "block", marginBottom: 4 } }, t("login_user")),
@@ -761,7 +1230,7 @@ function TraceabilityChain({ steps }) {
     React.createElement("div", { style: { fontSize: 9.5, color: COLORS.inkDim, marginTop: 10, lineHeight: 1.4 } }, "Şu an aşama tamamlanma durumu stok/sipariş verisinden çıkarılıyor. Gerçek sistemde her geçiş, o an otomatik zaman damgasıyla kaydedilecek.")
   );
 }
-function Sidebar({ tab, setTab, t, lang, setLang, onLogout, categories, roleLabel, dark, setDark }) {
+function Sidebar({ tab, setTab, t, lang, setLang, onLogout, onSwitchSector, categories, roleLabel, dark, setDark }) {
   return React.createElement("div", { style: { width: 232, flexShrink: 0, minHeight: "100vh", background: COLORS.panel, borderRight: "1px solid " + COLORS.border, display: "flex", flexDirection: "column", padding: "20px 14px", position: "sticky", top: 0 } },
     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10, padding: "0 8px", marginBottom: 6 } },
       React.createElement(LogoMark, { size: 34 }),
@@ -786,6 +1255,7 @@ function Sidebar({ tab, setTab, t, lang, setLang, onLogout, categories, roleLabe
     ),
     React.createElement("div", { style: { borderTop: "1px solid " + COLORS.border, paddingTop: 14, display: "flex", flexDirection: "column", gap: 10 } },
       React.createElement("div", { style: { display: "flex", gap: 6 } }, React.createElement(ThemeToggle, { dark, setDark }), React.createElement(LangToggle, { lang, setLang })),
+      React.createElement("button", { onClick: onSwitchSector, style: { border: "1px solid " + COLORS.border, background: "transparent", borderRadius: 8, padding: "9px 12px", fontSize: 12.5, color: COLORS.accent, fontWeight: 700, cursor: "pointer", fontFamily: fontBody } }, lang === "en" ? "⇄ Garment" : "⇄ Konfeksiyon"),
       React.createElement("button", { onClick: onLogout, style: { border: "1px solid " + COLORS.border, background: "transparent", borderRadius: 8, padding: "9px 0", fontSize: 12.5, color: COLORS.inkDim, cursor: "pointer", fontFamily: fontBody, fontWeight: 600 } }, t("logout"))
     )
   );
@@ -815,7 +1285,7 @@ function SectionLabel({ children, count }) {
   );
 }
 
-function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
+function MainBoard({ onSwitchSector, onLogout, lang, setLang, userRole, dark, setDark }) {
   const t = (k) => translations[lang][k] || translations.tr[k] || k;
   const tc = (s) => lang === "en" ? (CONTENT_TRANSLATIONS[s] || s) : s;
   const currentRole = ROLES.find(r => r.key === userRole) || ROLES[0];
@@ -1203,7 +1673,7 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
   };
 
   return React.createElement("div", { style: { display: isDesktop ? "flex" : "block", minHeight: "100vh", background: COLORS.base, color: COLORS.ink } },
-    isDesktop && React.createElement(Sidebar, { tab, setTab, t, lang, setLang, onLogout, categories: visibleCategories, roleLabel: lang === "en" ? currentRole.labelEn : currentRole.labelTr, dark, setDark }),
+    isDesktop && React.createElement(Sidebar, { tab, setTab, t, lang, setLang, onLogout, onSwitchSector, categories: visibleCategories, roleLabel: lang === "en" ? currentRole.labelEn : currentRole.labelTr, dark, setDark }),
     React.createElement("div", { style: { flex: 1, minHeight: "100vh", background: COLORS.base, color: COLORS.ink, fontFamily: fontBody, paddingBottom: isDesktop ? 24 : 76 } },
     React.createElement("div", { style: { background: COLORS.panel, borderBottom: "1px solid " + COLORS.border, padding: "14px 20px", position: "sticky", top: 0, zIndex: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" } },
       React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } },
@@ -1253,7 +1723,8 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
               React.createElement("path", { d: "M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z", strokeLinecap: "round", strokeLinejoin: "round" })
             )
           ),
-          React.createElement("button", { onClick: onLogout, style: { border: "1px solid " + COLORS.border, background: "transparent", borderRadius: 6, padding: "6px 10px", fontSize: 11, color: COLORS.inkDim, cursor: "pointer", fontFamily: fontBody } }, t("logout"))
+          React.createElement("button", { onClick: onSwitchSector, style: { border: "1px solid " + COLORS.border, background: "transparent", borderRadius: 8, padding: "9px 12px", fontSize: 12.5, color: COLORS.accent, fontWeight: 700, cursor: "pointer", fontFamily: fontBody } }, lang === "en" ? "⇄ Garment" : "⇄ Konfeksiyon"),
+      React.createElement("button", { onClick: onLogout, style: { border: "1px solid " + COLORS.border, background: "transparent", borderRadius: 6, padding: "6px 10px", fontSize: 11, color: COLORS.inkDim, cursor: "pointer", fontFamily: fontBody } }, t("logout"))
         )
       ),
       (() => {
@@ -2528,14 +2999,32 @@ function MainBoard({ onLogout, lang, setLang, userRole, dark, setDark }) {
   );
 }
 
+const CHARTJS_URL = "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js";
+
+function KonfeksiyonHost(props) {
+  const [ready, setReady] = useState(!!window.Chart);
+  useEffect(() => {
+    if (window.Chart) return;
+    loadScript(CHARTJS_URL).then(() => setReady(true)).catch(() => setReady(true));
+  }, []);
+  if (!ready) return React.createElement("div", { style: { minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: COLORS.inkDim, fontFamily: fontBody } }, "Yükleniyor…");
+  return React.createElement("div", { id: "konf-root", style: { minHeight: "100vh" } }, React.createElement(window.KonfeksiyonApp, props));
+}
+
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [lang, setLang] = usePersistentState("lang", "tr");
   const [userRole, setUserRole] = useState("yonetici");
+  const [sector, setSector] = usePersistentState("sector", "konfeksiyon");
   const [dark, setDark] = usePersistentState("darkMode", false);
   Object.assign(COLORS, dark ? DARK_PALETTE : LIGHT_PALETTE);
-  if (!loggedIn) return React.createElement(LoginScreen, { onLogin: (role) => { setUserRole(role); setLoggedIn(true); }, lang, setLang, dark, setDark });
-  return React.createElement(MainBoard, { onLogout: () => setLoggedIn(false), lang, setLang, userRole, dark, setDark });
+  if (!loggedIn) return React.createElement(LoginScreen, { onLogin: (role, sec) => { setUserRole(role); setSector(sec); setLoggedIn(true); }, lang, setLang, dark, setDark });
+  const onLogout = () => setLoggedIn(false);
+  const onSwitchSector = () => setSector(sector === "kumas" ? "konfeksiyon" : "kumas");
+  const r = ROLES.find(x => x.key === userRole);
+  const roleLabel = r ? (lang === "en" ? r.labelEn : r.labelTr) : "";
+  if (sector === "konfeksiyon") return React.createElement(KonfeksiyonHost, { onLogout, onSwitchSector, roleLabel });
+  return React.createElement(MainBoard, { onLogout, onSwitchSector, lang, setLang, userRole, dark, setDark });
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));

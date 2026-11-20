@@ -1,7 +1,7 @@
 {
   "name": "Filaris Texnet",
   "short_name": "Filaris",
-  "description": "Üretim, stok ve sipariş takip sistemi",
+  "description": "Konfeksiyon ve kumaş üretim yönetim sistemi",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#F3F3F3",
