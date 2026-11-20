@@ -3,7 +3,7 @@
 // İlk açılışta internet gerekir (kütüphaneler indirilip önbelleğe alınır);
 // sonraki açılışlarda internet olmasa bile uygulama ve tüm kütüphaneler önbellekten yüklenir.
 
-const CACHE_NAME = "filaris-texnet-v12";
+const CACHE_NAME = "filaris-texnet-v14";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -37,6 +37,11 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+  const _u = new URL(event.request.url);
+  if (event.request.mode === "navigate" || (_u.origin === self.location.origin && (_u.pathname.endsWith("/") || _u.pathname.endsWith("index.html")))) {
+    event.respondWith(fetch(event.request).then((r) => { if (r && r.status === 200) { const c = r.clone(); caches.open(CACHE_NAME).then((ch) => ch.put(event.request, c)); } return r; }).catch(() => caches.match(event.request).then((c) => c || caches.match("./index.html"))));
+    return;
+  }
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const networkFetch = fetch(event.request)
