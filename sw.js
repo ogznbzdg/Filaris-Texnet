@@ -3,7 +3,7 @@
 // İlk açılışta internet gerekir (kütüphaneler indirilip önbelleğe alınır);
 // sonraki açılışlarda internet olmasa bile uygulama ve tüm kütüphaneler önbellekten yüklenir.
 
-const CACHE_NAME = "filaris-texnet-v18";
+const CACHE_NAME = "filaris-texnet-v19";
 const APP_SHELL = [
   "./",
   "./index.html",
